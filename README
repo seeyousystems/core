@@ -44,7 +44,9 @@ Instructions on how to start using github
 		$ git config --global user.name "YourName"
 		$ git config --global user.email "your@email.com"
 	8. Get your API Token
-		$ git config --global github.user usernameSets the GitHub username for all git instances on the system
+		$ git config --global github.user username 
+		Sets the GitHub username for all git instances on the system		
+		
 		$ git config --global github.token 0123456789yourf0123456789token
 ===========================================================
 	

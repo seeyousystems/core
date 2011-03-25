@@ -1,4 +1,4 @@
-//Test comment edit from Hanam (3/24/2011 @ ~7:50pm)
+//Second edit by Hanam
 #ifndef CREATE_H
 #define CREATE_H
 

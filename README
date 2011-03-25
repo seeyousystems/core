@@ -1,21 +1,102 @@
+===========================================================
+++++++ How to Start using github ++++++
+===========================================================
+Instructions on how to start using github
+	1. Install git
+		http://help.github.com/set-up-git-redirect
+	2. Open up git bash (or just use your linux terminal)
+	
+*************************************************
+*	The following is to CONFIGURE YOUR SSH KEYS.
+*	It is found under the setup link above
+****************************************************
 
+	3. Change directory to your ssh
+		$ cd ~/.ssh
+	4. Check to see if you have id_rsa existed.
+		$ ls
+		(if you do make a directory and back up those keys.)
+			$ mkdir key_backup
+			$ cp id_rsa* key_backup
+			$ rm id_rsa*
+	5. Generate a new SSH key.
+		$ ssh-keygen -t rsa -C "your_email@youremail.com"
+		
+		It should generate a new id_rsa.pub key for you in that directory.
+	6. Add your SSH key to GitHub.
+		On the GitHub site Click “Account Settings” > Click “SSH Public Keys” > Click “Add another public key”
 
-++++++ How to commit on github ++++++
+		Open the id_rsa.pub file with a text editor 
+		(Notepad or TextEdit will do just fine). 
+		This is your public SSH key. You may need 
+		turn on “view hidden files” to find it because
+		the .ssh directory is hidden. It’s important 
+		you copy your SSH key exactly as it is written
+		without adding any newlines or whitespace. Now
+		paste it into the “Key” field.
+		
+**************************************************
+*	The following is to SETUP YOUR INFO
+*	It is found under the setup link above
+****************************************************
+
+	7. Configure your username and email:
+		$ git config --global user.name "YourName"
+		$ git config --global user.email "your@email.com"
+	8. Get your API Token
+		$ git config --global github.user usernameSets the GitHub username for all git instances on the system
+		$ git config --global github.token 0123456789yourf0123456789token
+===========================================================
+	
+	
+	
+===========================================================
+++++++ How to grab a repository ++++++
+===========================================================
+**************************************************
+*	The following is to FORK A REPO
+*	It is found in http://help.github.com/fork-a-repo/ .
+*	This lets you work on your own copy without damaging
+*	the master copy.
+****************************************************
+	1. Make a directory
+		$ mkdir workspace
+		$ cd workspace
+	2. Initialize this folder with git
+		$ git init
+	3. Go to https://github.com/seeyousystems/core and click on "fork".  
+		it should take you to: https://github.com/*YOURUSERNAME*/core to indicate that you
+		have made a copy of seeyousystem's core to YOUR OWN core.
+	4. Clone this repository to your computer to start working with.
+		$ git clone git@github.com:*YOURUSERNAME*/core.git
+	5. Create a remote for your master (the repository you forked from). Call it "upstream".
+		$ git remote add upstream git@github.com:seeyousystems/core.git
+	6. fetch (update) your upstraem.
+		$ git fetch upstream
+		
+	You should now be able to edit your files.  
+===========================================================		
+		
+	
+	
+===========================================================
+++++++ How to commit (reflect your local changes) to github ++++++
+===========================================================
 Instructions based off of http://git.or.cz/course/svn.html
 	1. Change directory to root.
-		cd ~/.ssh/core/
+		$ cd ~/.ssh/core/
 	2. Initialize the repository.
-		git init
+		$ git init
 	3. Add all files under current directory.
-		git add .
+		$ git add .
 	4. Commit the files to create a new revision.
-		git commit -m "this is your commit message"
+		$ git commit -m "this is your commit message"
 	5. Push out the changes to github.com repository.
-		git push origin master
+		$ git push origin master
 
 to update your files on your computer:
-		git pull origin master
+		$ git pull origin master
 to discard your changes (revert back to your last pulled revision):
-		git checkout  -- <file>
-++++++++++++++++++++++++++++++++++++
+		$ git checkout  -- <file>
+===========================================================
 

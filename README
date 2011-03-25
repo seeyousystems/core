@@ -1,1 +1,21 @@
-This is the first edit!
+
+
+++++++ How to commit on github ++++++
+Instructions based off of http://git.or.cz/course/svn.html
+	1. Change directory to root.
+		cd ~/.ssh/core/
+	2. Initialize the repository.
+		git init
+	3. Add all files under current directory.
+		git add .
+	4. Commit the files to create a new revision.
+		git commit -m "this is your commit message"
+	5. Push out the changes to github.com repository.
+		git push origin master
+
+to update your files on your computer:
+		git pull origin master
+to discard your changes (revert back to your last pulled revision):
+		git checkout  -- <file>
+++++++++++++++++++++++++++++++++++++
+

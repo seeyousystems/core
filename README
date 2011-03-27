@@ -106,9 +106,14 @@ to discard your changes (revert back to your last pulled revision):
 ===========================================================
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 Vernon was here.
 =======
+=======
+onemoretime
+
+>>>>>>> upstream/master
 EDITED BY SEEYOUSYSTEMS
 
 >>>>>>> upstream/master

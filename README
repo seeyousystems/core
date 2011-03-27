@@ -103,5 +103,10 @@ to discard your changes (revert back to your last pulled revision):
 		$ git checkout  -- <file>
 ===========================================================
 
+<<<<<<< HEAD
 
 Vernon was here.
+=======
+EDITED BY SEEYOUSYSTEMS
+
+>>>>>>> upstream/master

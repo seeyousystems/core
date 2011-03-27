@@ -103,3 +103,5 @@ to discard your changes (revert back to your last pulled revision):
 		$ git checkout  -- <file>
 ===========================================================
 
+EDITED BY SEEYOUSYSTEMS
+

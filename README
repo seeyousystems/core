@@ -1,5 +1,3 @@
-Another Change
-
 ===========================================================
 ++++++ How to Start using github ++++++
 ===========================================================
@@ -8,6 +6,8 @@ Instructions on how to start using github
 		http://help.github.com/set-up-git-redirect
 	2. Open up git bash (or just use your linux terminal)
 	
+Another Change
+
 *************************************************
 *	The following is to CONFIGURE YOUR SSH KEYS.
 *	It is found under the setup link above

@@ -16,6 +16,7 @@
 #include "Task/Task.h"
 #include "Task/TaskManager.h"
 #include "Task/TestMoveTask.h"
+#include "Task/SeeYouTask.h"
 
 //#include "TestMoveTask.h"
 
@@ -57,6 +58,9 @@ Interface::Interface(QWidget *parent)
 	sliderAngle->setRange(0,360);
 	sliderAngle->setValue(45);
 	checkNegativeAngle->setChecked(false);
+
+	// Enable/Disable Buttons
+	blockBox->setEnabled(false);
 }
 
 Interface::~Interface()
@@ -77,7 +81,7 @@ void Interface::connectDisconnect()
 	// Connect or disconnect...
 	if (create->isConnected() == false) {
 
-		Debug::print("-------------------------createcreate-------------------");
+		Debug::print("--------------------------------------------");
 		btnConnect->setText("Connecting...");
 		btnConnect->repaint();
 
@@ -94,7 +98,7 @@ void Interface::connectDisconnect()
 			connect(sliderSpeed, SIGNAL(valueChanged(int)), create->controller, SLOT(setSpeed(int)));
 			connect(sliderAngle, SIGNAL(valueChanged(int)), create->controller, SLOT(setAngle(int)));
 		}
-		if(create->controller->name == "Block Drive") {
+		else if(create->controller->name == "Block Drive") {
 
 			connect(btnBlockDriveForward, SIGNAL(clicked()), create->controller, SLOT(moveForward()));
 			connect(btnBlockDriveBackward, SIGNAL(clicked()), create->controller, SLOT(moveBackward()));
@@ -107,16 +111,24 @@ void Interface::connectDisconnect()
 			//tabBlockDriveController->setEnabled(true);
 		}
 
+		// Enable/Disable Buttons
+		btnConnect->setText("Disconnect");
+		blockBox->setEnabled(true);
+		//groupBox->
+
 	}
 	else {
 
 		Debug::print("[Interface] disconnecting...");
-		btnConnect->setText("Disconnecting...");
-		btnConnect->repaint();
 
 		// Call for disconnect
 		create->stop();
 		create->disconnect();
+
+		// Enable/Disable Buttons
+		btnConnect->setText("Connect");
+		btnConnect->repaint();
+		blockBox->setEnabled(false);
 
 	}
 }
@@ -208,22 +220,27 @@ void Interface::currentTask(int index)
 {
 	//Debug::print("[Interface] current index is: %1 name: %2", index, cbTask->itemText(index));
 	QString task = cbTask->itemText(index);
-	if(task == "Square") {
-		create->addTask(new TestMoveTask(create, task, this->sliderSpeed->value()));
+	if(task == "Avoid Obstacles") {
+		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
 	}
 	else if(task == "Rotate 90") {
-		create->addTask(new TestMoveTask(create, task, this->sliderSpeed->value()));
+		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
 	}
 	else if(task == "Rotate 360") {
-		create->addTask(new TestMoveTask(create, task, this->sliderSpeed->value()));
+		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+	}
+	else if(task == "Wall Follower") {
+		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
 	}
 }
 
 QGroupBox *Interface::createControlsExclusiveGroup()
 {
-	QGroupBox *groupBox = new QGroupBox(tr("E&xclusive Controls"));
-	groupBox->setCheckable(true);
-	groupBox->setChecked(true);
+	//QGroupBox *groupBox = new QGroupBox(tr("E&xclusive Controls"));
+	exclusiveBox = new QGroupBox(tr("E&xclusive Controls"));
+
+	exclusiveBox->setCheckable(false);
+	exclusiveBox->setChecked(true);
 
 	// Joystick
 	joystick = new JoystickView(JoystickView::JOYSTICK_MODE_FREE);
@@ -262,13 +279,6 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 	cbPort->addItem("/dev/ttyUSB2");
 	cbPort->addItem("/dev/ttyUSB3");
 
-	// Task list
-	cbTask = new QComboBox();
-	cbTask->addItem("Square");
-	cbTask->addItem("Rotate 90");
-	cbTask->addItem("Rotate 360");
-	cbTask->addItem("Triangle");
-
 //	QHBoxLayout *hbox = new QHBoxLayout;
 //	hbox->addWidget(new QLabel("Angle:"), 1,0);
 //	hbox->addWidget(checkNegativeAngle);
@@ -284,18 +294,20 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 	vbox->addWidget(btnConnect);
 	vbox->addWidget(btnAbort);
 	vbox->addWidget(cbPort);
-	vbox->addWidget(cbTask);
+	//vbox->addWidget(cbTask);
 	vbox->addStretch(1);
-	groupBox->setLayout(vbox);
+	exclusiveBox->setLayout(vbox);
 
-	return groupBox;
+	return exclusiveBox;
 }
 
 QGroupBox *Interface::createBlockControllerExclusiveGroup()
 {
-	QGroupBox *groupBox = new QGroupBox(tr("&Buttons"));
-	groupBox->setCheckable(true);
-	groupBox->setChecked(true);
+	//QGroupBox *groupBox = new QGroupBox(tr("&Buttons"));
+	blockBox = new QGroupBox(tr("&Buttons"));
+
+	blockBox->setCheckable(false);
+	blockBox->setChecked(true);
 
 	// Block Drive Controller
 	QGridLayout *layoutTopLeftBottomMaster = new QGridLayout();
@@ -349,9 +361,18 @@ QGroupBox *Interface::createBlockControllerExclusiveGroup()
 	layoutTopLeftBottomMaster->addWidget(lcdSpeed, 7, 0);
 	layoutTopLeftBottomMaster->addWidget(sliderSpeed, 8, 0);
 
-	groupBox->setLayout(layoutTopLeftBottomMaster);
+	// Task list
+	cbTask = new QComboBox();
+	cbTask->addItem("Avoid Obstacles");
+	cbTask->addItem("Rotate 90");
+	cbTask->addItem("Rotate 360");
+	cbTask->addItem("Wall Follower");
+	layoutTopLeftBottomMaster->addWidget(new QLabel("Tasks"), 9, 0);
+	layoutTopLeftBottomMaster->addWidget(cbTask, 10, 0);
 
-	return groupBox;
+	blockBox->setLayout(layoutTopLeftBottomMaster);
+
+	return blockBox;
 }
 
 QGroupBox *Interface::createButtonsExclusiveGroup()

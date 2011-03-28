@@ -32,13 +32,12 @@ void SensorController::run()
 	stopRequested = false;
 	while (stopRequested == false) {
 
-		// todo: VERNON MENSO
 		//heading = arduino_getHeadign();
 
-		frontIR = arduino_getFrontIR();
-		leftIR = arduino_getLeftIR();
-		rightIR = arduino_getRightIR();
-		Debug::print("[ArduinoController] Left: %1  front: %2  Right: %3", leftIR, frontIR, rightIR);
+//		frontIR = arduino_getFrontIR();
+//		leftIR = arduino_getLeftIR();
+//		rightIR = arduino_getRightIR();
+//		Debug::print("[ArduinoController] Left: %1  front: %2  Right: %3", leftIR, frontIR, rightIR);
 
 		// Sleep our interval...
 		this->msleep(interval);

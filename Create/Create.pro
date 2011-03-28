@@ -4,7 +4,8 @@ QT += core \
     gui \
     xml \
     network
-HEADERS += Controller/BlockDriveController.h \
+HEADERS += Task/SeeYouTask.h \
+    Controller/BlockDriveController.h \
     Controller/SensorController.h \
     Controller/ArduinoController.h \
     COIL/ArduinoCOIL.h \
@@ -34,7 +35,8 @@ HEADERS += Controller/BlockDriveController.h \
     Library/SleeperThread.h \
     Library/Util.h \
     create.h
-SOURCES += Controller/BlockDriveController.cpp \
+SOURCES += Task/SeeYouTask.cpp \
+    Controller/BlockDriveController.cpp \
     Controller/SensorController.cpp \
     Controller/ArduinoController.cpp \
     COIL/ArduinoCOIL.cpp \

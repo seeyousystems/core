@@ -25,7 +25,7 @@
 #include <assert.h>
 
 // TODO: If Arduino is not connected, set this variable to 0
-int Create::arduino_active = 0;
+int Create::arduino_active = 1;
 
 Create::Create()
 {
@@ -187,7 +187,7 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	assert(controller);
 
 	// Init Arduino controller
-	if(arduino_active) {
+	if(arduino_active == 3) {
 		if(arduinoController) { delete arduinoController; arduinoController = NULL; }
 		arduinoController = new SensorController(this, intSetting("SENSORCONTROLLER_SPEED"), intSetting("SENSORCONTROLLER_INTERVAL"));
 		assert(arduinoController);
@@ -217,7 +217,7 @@ void Create::run() {
 
 	// Kickoff the controller and navigator :)
 	if(controller) controller->start(QThread::NormalPriority);
-	if(arduino_active) {
+	if(arduino_active == 3) {
 		if(arduinoController) arduinoController->start(QThread::NormalPriority);
 	}
 	if(taskManager) taskManager->start(QThread::NormalPriority);
@@ -229,7 +229,7 @@ void Create::stop() {
 	// Shutdown controller and movement tracker
 	if(taskManager) taskManager->stop();
 	if(controller) controller->stop();
-	if(arduino_active) {
+	if(arduino_active == 3) {
 		if(arduinoController) arduinoController->stop();
 	}
 	Debug::print("[Core] Stopped");

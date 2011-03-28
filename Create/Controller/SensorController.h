@@ -19,6 +19,9 @@ public:
 	int leftPinger;
 	int rightPinger;
 	int frontIR;
+	int leftIR;
+	int rightIR;
+
 
 public:
 	SensorController(Create *create, int speed, int interval);
@@ -26,10 +29,12 @@ public:
 	virtual void run();
 
 private:
-	virtual int arduino_getHeadign();
+	virtual int arduino_getHeading();
 	virtual int arduino_getLeftPinger();
 	virtual int arduino_getRightPinger();
 	virtual int arduino_getFrontIR();
+	virtual int arduino_getLeftIR();
+	virtual int arduino_getRightIR();
 };
 
 #endif /* SENSORCONTROLLER_H_ */

@@ -180,8 +180,8 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 
 	// Init controller
 	if(controller) { delete controller; controller = NULL; }
-	//controller = new BlockDriveController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
-	controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
+	controller = new SeeYouController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
+	//controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
 
 
 	assert(controller);

@@ -60,8 +60,7 @@ SOURCES += Controller/BlockDriveController.cpp \
     create.cpp
 FORMS += create.ui
 RESOURCES += 
-INCLUDEPATH += /usr/local/include/oscpack/osc \
-    /usr/local/include/oscpack/ip
+INCLUDEPATH += 
 RESOURCES += 
 unix:HEADERS += qextserialport/posix_qextserialport.h
 unix:SOURCES += qextserialport/posix_qextserialport.cpp
@@ -70,5 +69,4 @@ win32:HEADERS += qextserialport/win_qextserialport.h
 win32:SOURCES += qextserialport/win_qextserialport.cpp
 win32:DEFINES += _TTY_WIN_
 win32:LIBS += -lsetupapi
-LIBS += -lqextserialport \
-    -loscpack
+LIBS += -lqextserialport

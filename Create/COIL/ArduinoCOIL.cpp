@@ -226,6 +226,16 @@ int ArduinoCOIL::readInfraredFront()
 	return readSensor(SENSOR_IR_2);
 }
 
+int ArduinoCOIL::readInfraredLeft()
+{
+	return readSensor(SENSOR_IR_1);
+}
+
+int ArduinoCOIL::readInfraredRight()
+{
+	return readSensor(SENSOR_IR_3);
+}
+
 void ArduinoCOIL::enableDebug()
 {
 	debug = 1;

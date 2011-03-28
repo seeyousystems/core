@@ -52,7 +52,8 @@ public:
 			SENSOR_LED_INDICATOR,
 			SENSOR_COMPASS,
 			SENSOR_LEFT_PINGER,
-			SENSOR_RIGHT_PINGER
+			SENSOR_RIGHT_PINGER,
+			SENSOR_RFID
 	    }seeyou_sensor;
 
 
@@ -74,6 +75,8 @@ public:
     int readLeftPinger();
     int readRightPinger();
     int readInfraredFront();
+    int readInfraredLeft();
+    int readInfraredRight();
     void enableDebug();
     void disableDebug();
 

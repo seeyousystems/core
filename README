@@ -24,16 +24,16 @@ Instructions on how to start using github
 		
 		It should generate a new id_rsa.pub key for you in that directory.
 	6. Add your SSH key to GitHub.
-		On the GitHub site Click “Account Settings” > Click “SSH Public Keys” > Click “Add another public key”
+		On the GitHub site Click ï¿½Account Settingsï¿½ > Click ï¿½SSH Public Keysï¿½ > Click ï¿½Add another public keyï¿½
 
 		Open the id_rsa.pub file with a text editor 
 		(Notepad or TextEdit will do just fine). 
 		This is your public SSH key. You may need 
-		turn on “view hidden files” to find it because
-		the .ssh directory is hidden. It’s important 
+		turn on ï¿½view hidden filesï¿½ to find it because
+		the .ssh directory is hidden. Itï¿½s important 
 		you copy your SSH key exactly as it is written
 		without adding any newlines or whitespace. Now
-		paste it into the “Key” field.
+		paste it into the ï¿½Keyï¿½ field.
 		
 **************************************************
 *	The following is to SETUP YOUR INFO
@@ -101,4 +101,30 @@ to update your files on your computer:
 		$ git pull origin master
 to discard your changes (revert back to your last pulled revision):
 		$ git checkout  -- <file>
+===========================================================
+
+===========================================================
+++++++ How to Merge seeyousystems/core and YOURUSERNAME/core (upstream and master)++++++
+===========================================================
+Instructions based off of 
+http://www.kernel.org/pub/software/scm/git/docs/user-manual.html#resolving-a-merge
+and http://help.github.com/fork-a-repo/
+	1. Fetch any new changes from the original repo (upstream)
+		$ git fetch upstream
+	2. Try to merge the original (upstream) with your fork (master)
+		$ git merge upstream/master
+	3. push the changes to your github
+		$ git push origin master
+		
+	If you encounter problems here, try the following:
+	1. Checking differences:
+		$ git diff HEAD..upstream/master
+	2. Add the changed files to commit.
+		$ git add <FILE>
+	3. commit
+		$ git commit -m "message"
+	4. Try to merge again above.
+		$ git merge upstream/master
+	5. push
+		$git push origin master
 ===========================================================

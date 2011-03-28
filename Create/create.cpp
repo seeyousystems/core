@@ -19,12 +19,12 @@
 #include "Task/Task.h"
 #include "Task/TaskManager.h"
 
-// OSC Libs
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
 #include <assert.h>
 
+// TODO: If Arduino is not connected, set this variable to 0
 int Create::arduino_active = 0;
 
 Create::Create()
@@ -142,10 +142,10 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 
 		// Set LED to indicate initialization
 		arduino->setLEDState();
-		Debug::print("Compass: %1", arduino->readCompass());
-		Debug::print("Left: %1", arduino->readLeftPinger());
-		Debug::print("Right: %1", arduino->readRightPinger());
-		Debug::print("Front: %1", arduino->readInfraredFront());
+//		Debug::print("Compass: %1", arduino->readCompass());
+//		Debug::print("Left: %1", arduino->readLeftPinger());
+//		Debug::print("Right: %1", arduino->readRightPinger());
+//		Debug::print("Front: %1", arduino->readInfraredFront());
 	}
 
 
@@ -340,12 +340,6 @@ void Create::reset(){
 	emit coreReset();
 }
 
-
-
-
-
-
-
 bool Create::isConnected() {
 	return connected;
 }
@@ -380,11 +374,6 @@ QVariant Create::getSetting(QString key) {
 		return value;
 	}
 }
-
-
-
-
-
 
 //void Create::initCreate(QSettings *settings)
 //{

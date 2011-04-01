@@ -228,12 +228,12 @@ int ArduinoCOIL::readInfraredFront()
 
 int ArduinoCOIL::readInfraredLeft()
 {
-	return readSensor(SENSOR_IR_1);
+	return readSensor(SENSOR_IR_3);
 }
 
 int ArduinoCOIL::readInfraredRight()
 {
-	return readSensor(SENSOR_IR_3);
+	return readSensor(SENSOR_IR_1);
 }
 
 void ArduinoCOIL::enableDebug()

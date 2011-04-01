@@ -49,6 +49,13 @@ void SeeYouController::run() {
 
 		// Get sensor data from Arduino
 		int frontIRSensor = arduino_getFrontIR();
+		int leftIRSensor = arduino_getLeftIR();
+		int rightIRSensor = arduino_getRightIR();
+		int compassSensor = arduino_getHeading();
+
+
+		//Debug::print("Left: %1  Front: %2  Right: %3  Compass: %4", leftIRSensor, frontIRSensor, rightIRSensor, compassSensor);
+
 
 		// Collision?
 		if (((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT) || ((COIL::BUMPWHEELDROP_BUMP_RIGHT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_RIGHT)) {
@@ -64,7 +71,7 @@ void SeeYouController::run() {
 
 		// Object detected with Arduino Sensors?
 		if (frontIRSensor < 10) {
-			Debug::print("Less than what we need");
+			//Debug::print("Less than what we need");
 		}
 
 		// Processs movement

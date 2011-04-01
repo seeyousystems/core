@@ -29,8 +29,6 @@ int Create::arduino_active = 1;
 
 Create::Create()
 {
-	// Init Create settings based on seeyouCreate.config file
-	//initCreate(new QSettings(QString("Resources/seeyouCreate.config"), QSettings::IniFormat));
 	// NULL everything for safety of deletion
 	coil = NULL;
 	arduino = NULL;
@@ -57,9 +55,8 @@ Create::Create()
 	this->heatSpotSize = this->longSetting("HEAT_SPOT_SIZE_MM");
 	connected = false;
 
-		// Init maps and objects
-		//initMapsAndObjects();
-
+	// Init maps and objects
+	//initMapsAndObjects();
 }
 
 Create::~Create()
@@ -78,8 +75,6 @@ Create::~Create()
 
 	if(settings) delete settings;
 }
-
-
 
 bool Create::connect(QString strSerialPort, bool safeMode)
 {
@@ -121,7 +116,7 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 		Debug::print("[Create] entered full mode");
 	}
 
-	// Restet LED's
+	// Reset LED's
 	coil->setLEDState(COIL::LED_ADVANCE | COIL::LED_PLAY, 0, 255);
 
 	// Init Communication with Arduino
@@ -138,40 +133,12 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 		//		return false; // TODO:
 		//	}
 
+		// Wait for 2 seconds for Arduino to be stable
 		SleeperThread::msleep(2000);
 
 		// Set LED to indicate initialization
 		arduino->setLEDState();
-//		Debug::print("Compass: %1", arduino->readCompass());
-//		Debug::print("Left: %1", arduino->readLeftPinger());
-//		Debug::print("Right: %1", arduino->readRightPinger());
-//		Debug::print("Front: %1", arduino->readInfraredFront());
 	}
-
-
-
-
-	// Test read packet from arduino
-//	byte *buffer;
-//	int result = 0;
-//	buffer = (byte*)malloc(2 * sizeof(byte));
-//	if(NULL != buffer)
-//	{
-//		buffer[0] = 0; buffer[1] = 0;
-//		if (-1 == arduino->readRawSensor (buffer, 2))
-//		{
-//			free (buffer);
-//			//return INT_MIN;
-//		}
-//		//buffer[0] = 0x30;
-//		//buffer[1] = 0x30;
-//
-//		result = (short) ((buffer[0] << 8) | buffer[1]);
-//	}
-//	free(buffer);
-//
-//	Debug::print("[Create] IR: %1", result);
-//	printf("[abraham] %d\n", result);
 
 	// Init movement tracker
 	/*if(strMovementTracker == "Raw Movement Tracker")*/ {
@@ -182,8 +149,6 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	if(controller) { delete controller; controller = NULL; }
 	controller = new SeeYouController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
 	//controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
-
-
 	assert(controller);
 
 	// Init Arduino controller
@@ -203,8 +168,6 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	// Register misc. stuff with objects
 	movementTracker->connectController(controller);
 	//movementTracker->connectMaps(this);
-
-	printf("****** %d  ********\n", intSetting("EMULATEDEMSSCONTROLLER_SPEED"));
 
 	// Success!
 	connected = true;
@@ -261,6 +224,7 @@ bool Create::disconnect() {
 	if(coil) {
 		Debug::print("[Create] shutdown coil");
 		coil->setLEDState(0, 255, 255);
+		coil->enterPassiveMode();
 		coil->stopOI();
 		delete coil;
 		coil = NULL;

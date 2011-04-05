@@ -9,10 +9,14 @@
 #define SENSORCONTROLLER_H_
 
 #include "ArduinoController.h"
+#include "../Library/Algorithm/VFF.h"
 
 class SensorController : public ArduinoController {
 
 	Q_OBJECT
+
+private:
+	VFF vffAI;
 public:
 	short speed;
 	int heading;

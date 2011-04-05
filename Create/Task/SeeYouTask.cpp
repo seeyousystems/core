@@ -14,7 +14,7 @@
 #include "../MovementTracker/MovementTracker.h"
 
 SeeYouTask::SeeYouTask(Create *create, QString move, int speed, TaskPriority priority) :
-	Task("Test Move", create, create->intSetting("TESTMOVETASK_INTERVAL"), priority) {
+	Task("SeeYou Task", create, create->intSetting("TESTMOVETASK_INTERVAL"), priority) {
 	this->move = move;
 	this->speed = speed;
 	tick = 0;
@@ -36,6 +36,16 @@ void SeeYouTask::process() {
 		 *		((SeeYouController*) create->controller)->turn(90, this->speed);
 		 *		((SeeYouController*) create->controller)->move(1778, this->speed);
 		 */
+		long x = create->movementTracker->x();
+		long y = create->movementTracker->y();
+
+		//Debug::print("Start:(%1,%2)", x, y);
+		printf("%d,%d", x/1000, y/1000);
+
+		((SeeYouController*) create->controller)->move(200, this->speed);
+
+		//Debug::print("End:(%1,%2)", x, y);
+
 
 		Debug::print("[SeeYouTask] Avoid Obstacles");
 		status = Task::Finished;

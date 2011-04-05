@@ -47,16 +47,6 @@ void SeeYouController::run() {
 		int sharpIRSensor = coil_getAnalogSensorDistance();
 		int bumpsWheelDrop = coil_getBumpsAndWheelDrops();
 
-		// Get sensor data from Arduino
-		int frontIRSensor = arduino_getFrontIR();
-		int leftIRSensor = arduino_getLeftIR();
-		int rightIRSensor = arduino_getRightIR();
-		int compassSensor = arduino_getHeading();
-
-
-		//Debug::print("Left: %1  Front: %2  Right: %3  Compass: %4", leftIRSensor, frontIRSensor, rightIRSensor, compassSensor);
-
-
 		// Collision?
 		if (((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT) || ((COIL::BUMPWHEELDROP_BUMP_RIGHT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_RIGHT)) {
 			emit signalCollision();
@@ -67,11 +57,6 @@ void SeeYouController::run() {
 		if (sharpIRSensor < create->intSetting("SEEYOUCONTROLLER_SHARP_IR_SENSOR_CUTOFF_VALUE")) {
 			emit signalObjectDetected(sharpIRSensor, 0); // Angle is 0 because it is strait ahead always!
 			if(create->boolSetting("SEEYOUCONTROLLER_EMERGENCY_STOP_ENABLED") == true && sharpIRSensor < create->intSetting("SEEYOUCONTROLLER_SHARP_IR_SENSOR_EMERGENCYSTOP_BUFFER_MM")) emergencyStop();
-		}
-
-		// Object detected with Arduino Sensors?
-		if (frontIRSensor < 10) {
-			//Debug::print("Less than what we need");
 		}
 
 		// Processs movement
@@ -88,23 +73,9 @@ void SeeYouController::run() {
 
 		} else if (mode == SeeYouController::Joystick) {
 
-			// Joystick mode!
-
-//			if (this->yokeY == 0) {
-//				// Left or right
-//				Lwheel = (short) (this->speed * this->yokeX);
-//				Rwheel = -(short) (this->speed * this->yokeX);
-//
-//			} else {
-//				// Move forwards backwards
-//				Lwheel = (short) (this->speed * this->yokeY);
-//				Rwheel = (short) (this->speed * this->yokeY);
-//			}
-
 			if (this->yokeY <= 0.06 && this->yokeY >= -0.06) {
-				speed = 150;
-				Lwheel = -(short)speed * (this->yokeX);
-				Rwheel =  (short)speed * (this->yokeX);
+				Lwheel = -(short)this->speed * (this->yokeX);
+				Rwheel =  (short)this->speed * (this->yokeX);
 			}
 			else {
 				short speed = (short) (this->speed * this->yokeY);

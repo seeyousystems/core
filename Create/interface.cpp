@@ -17,6 +17,7 @@
 #include "Task/TaskManager.h"
 #include "Task/TestMoveTask.h"
 #include "Task/SeeYouTask.h"
+#include "Task/StraightPathMoveTask.h"
 
 //#include "TestMoveTask.h"
 
@@ -94,6 +95,7 @@ void Interface::connectDisconnect()
 			connect(joystick, SIGNAL(yokeChanged(double,double)), create->controller, SLOT(setYoke(double,double)));
 		}
 		else if(create->controller->name == "SeeYou") {
+			Debug::print("[Interface] SeeYou Armed");
 			connect(joystick, SIGNAL(yokeChanged(double,double)), create->controller, SLOT(setYoke(double,double)));
 			connect(sliderSpeed, SIGNAL(valueChanged(int)), create->controller, SLOT(setSpeed(int)));
 			connect(sliderAngle, SIGNAL(valueChanged(int)), create->controller, SLOT(setAngle(int)));
@@ -228,6 +230,11 @@ void Interface::currentTask(int index)
 	}
 	else if(task == "Rotate 360") {
 		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+	}
+	else if(task == "Straight Path Move") {
+		//create->addTask(new StraightPathMoveTask(create,0,100 * create->scale, this->sliderSpeed->value()));
+		create->addTask(new StraightPathMoveTask(create,50000,50100, this->sliderSpeed->value()));
+
 	}
 	else if(task == "Wall Follower") {
 		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
@@ -366,6 +373,7 @@ QGroupBox *Interface::createBlockControllerExclusiveGroup()
 	cbTask->addItem("Avoid Obstacles");
 	cbTask->addItem("Rotate 90");
 	cbTask->addItem("Rotate 360");
+	cbTask->addItem("Straight Path Move");
 	cbTask->addItem("Wall Follower");
 	layoutTopLeftBottomMaster->addWidget(new QLabel("Tasks"), 9, 0);
 	layoutTopLeftBottomMaster->addWidget(cbTask, 10, 0);

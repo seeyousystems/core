@@ -19,12 +19,6 @@ typedef unsigned char	byte;
 class ArduinoCOIL : public QObject
 {
 	Q_OBJECT
-public:
-	ArduinoCOIL(QString portName);
-	virtual ~ArduinoCOIL();
-
-	int cwrite (QextSerialPort *port, byte* buf, int numbytes);
-	int cread (QextSerialPort *port, byte* buf, int numbytes);
 
 public:
 
@@ -57,12 +51,27 @@ public:
 	    }seeyou_sensor;
 
 
+public:
+	ArduinoCOIL(QString portName);
+	virtual ~ArduinoCOIL();
 
+	int cwrite (QextSerialPort *port, byte* buf, int numbytes);
+	int cread (QextSerialPort *port, byte* buf, int numbytes);
+	int cread (QextSerialPort *port, byte* buf, int numbytes, seeyou_sensor sensors);
 
 
 private:
 	QextSerialPort *port;
 	static int debug;			//< debug mode status
+	byte previousCompassReading[2];
+	byte previousIR0Reading[2];
+	byte previousIR1Reading[2];
+	byte previousIR2Reading[2];
+	byte previousIR3Reading[2];
+	byte previousLeftPingReading[2];
+	byte previousRightPingReading[2];
+
+
 
 public:
     int setBaud (BaudRateType rate);

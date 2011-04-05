@@ -4,7 +4,12 @@ QT += core \
     gui \
     xml \
     network
-HEADERS += Task/SeeYouTask.h \
+HEADERS += Library/Algorithm/VFF.h \
+    Library/Algorithm/Grid.h \
+    Library/VFF.h \
+    Task/StraightPathMoveTask.h \
+    Task/MoveTask.h \
+    Task/SeeYouTask.h \
     Controller/BlockDriveController.h \
     Controller/SensorController.h \
     Controller/ArduinoController.h \
@@ -35,7 +40,11 @@ HEADERS += Task/SeeYouTask.h \
     Library/SleeperThread.h \
     Library/Util.h \
     create.h
-SOURCES += Task/SeeYouTask.cpp \
+SOURCES += Library/Algorithm/VFF.cpp \
+    Library/Algorithm/Grid.cpp \
+    Task/StraightPathMoveTask.cpp \
+    Task/MoveTask.cpp \
+    Task/SeeYouTask.cpp \
     Controller/BlockDriveController.cpp \
     Controller/SensorController.cpp \
     Controller/ArduinoController.cpp \

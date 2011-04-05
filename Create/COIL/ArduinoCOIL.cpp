@@ -24,6 +24,15 @@ ArduinoCOIL::ArduinoCOIL(QString portName) {
 	port->setDataBits(DATA_8);
 	port->setStopBits(STOP_1);
 
+	for(int i = 0; i < 2; i++) {
+		this->previousCompassReading[i] = 0;
+		this->previousIR0Reading[i] = 0;
+		this->previousIR1Reading[i] = 0;
+		this->previousIR2Reading[i] = 0;
+		this->previousIR3Reading[i] = 0;
+		this->previousLeftPingReading[i] = 0;
+		this->previousRightPingReading[i] = 0;
+	}
 
 	if(!port->open(QIODevice::ReadWrite | QIODevice::Unbuffered)) {
 		Debug::warning("[COIL] Could not open serial port on %1", portName);
@@ -84,10 +93,63 @@ int ArduinoCOIL::cread (QextSerialPort *port, byte* buf, int numbytes)
 		if (n < 0) return -1;
 		if (n == 0)
 		{
-			numzeroes++;
-			if (numzeroes > 5) break;
+			break;
 		}
 		numread += n;
+	}
+
+	if (debug)
+	{
+		printf ("Read:   ");
+		for (i = 0; i < numread; i++) printf ("%d ", buf[i]);
+		printf (" (%d of %d bytes with %d tries)\n", numread, numbytes, numzeroes);
+	}
+
+	port->flush();
+	return numread;
+
+}
+
+int ArduinoCOIL::cread (QextSerialPort *port, byte* buf, int numbytes, seeyou_sensor sensors)
+{
+	int i, numread = 0, n = 0, numzeroes = 0;
+
+	while (numread < numbytes)
+	{
+		//n = read (fd, (buf + numread), (numbytes - numread));
+		n = port->read( (char*)(buf + numread), (numbytes - numread));
+		if (n < 0) return -1;
+		if (n == 0)
+		{
+			// TODO: I found that the UART tends to dropped packages and
+			//		 halted the system. I used another buffer to stored
+			//		 previous readings and used that to replace a lost packet.
+			//		 Abraham
+			switch(sensors)
+			{
+				case SENSOR_IR_0: 	memcpy(buf, this->previousIR0Reading, 2); break;
+				case SENSOR_IR_1:	memcpy(buf, this->previousIR1Reading, 2); break;
+				case SENSOR_IR_2:	memcpy(buf, this->previousIR2Reading, 2); break;
+				case SENSOR_IR_3:	memcpy(buf, this->previousIR3Reading, 2); break;
+				case SENSOR_COMPASS:	memcpy(buf, this->previousCompassReading, 2); break;
+				case SENSOR_LEFT_PINGER:	memcpy(buf, this->previousLeftPingReading, 2); break;
+				case SENSOR_RIGHT_PINGER:	memcpy(buf, this->previousRightPingReading, 2); break;
+			}
+			return 2;
+		}
+		numread += n;
+	}
+
+	// Fix!
+	switch(sensors)
+	{
+		case SENSOR_IR_0: 	memcpy(this->previousIR0Reading, buf, 2); break;
+		case SENSOR_IR_1:	memcpy(this->previousIR1Reading, buf, 2); break;
+		case SENSOR_IR_2:	memcpy(this->previousIR2Reading, buf, 2); break;
+		case SENSOR_IR_3:	memcpy(this->previousIR3Reading, buf, 2); break;
+		case SENSOR_COMPASS:	memcpy(this->previousCompassReading, buf, 2); break;
+		case SENSOR_LEFT_PINGER:	memcpy(this->previousLeftPingReading, buf, 2); break;
+		case SENSOR_RIGHT_PINGER:	memcpy(this->previousRightPingReading, buf, 2); break;
 	}
 
 	if (debug)
@@ -144,7 +206,7 @@ int ArduinoCOIL::readRawSensor (seeyou_sensor packet, byte* buffer, int size)
 
 	SleeperThread::msleep(40); // BUG: Why must we sleep? RTFM...
 
-	numread = cread (port, buffer, size);
+	numread = cread (port, buffer, size, packet);
 	if (numread < 0)
 	{
 		Debug::error ("[COIL] Could not read sensor");

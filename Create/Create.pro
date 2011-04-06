@@ -4,7 +4,13 @@ QT += core \
     gui \
     xml \
     network
-HEADERS += Controller/BlockDriveController.h \
+HEADERS += Library/Algorithm/VFF.h \
+    Library/Algorithm/Grid.h \
+    Library/VFF.h \
+    Task/StraightPathMoveTask.h \
+    Task/MoveTask.h \
+    Task/SeeYouTask.h \
+    Controller/BlockDriveController.h \
     Controller/SensorController.h \
     Controller/ArduinoController.h \
     COIL/ArduinoCOIL.h \
@@ -34,7 +40,12 @@ HEADERS += Controller/BlockDriveController.h \
     Library/SleeperThread.h \
     Library/Util.h \
     create.h
-SOURCES += Controller/BlockDriveController.cpp \
+SOURCES += Library/Algorithm/VFF.cpp \
+    Library/Algorithm/Grid.cpp \
+    Task/StraightPathMoveTask.cpp \
+    Task/MoveTask.cpp \
+    Task/SeeYouTask.cpp \
+    Controller/BlockDriveController.cpp \
     Controller/SensorController.cpp \
     Controller/ArduinoController.cpp \
     COIL/ArduinoCOIL.cpp \
@@ -60,8 +71,7 @@ SOURCES += Controller/BlockDriveController.cpp \
     create.cpp
 FORMS += create.ui
 RESOURCES += 
-INCLUDEPATH += /usr/local/include/oscpack/osc \
-    /usr/local/include/oscpack/ip
+INCLUDEPATH += 
 RESOURCES += 
 unix:HEADERS += qextserialport/posix_qextserialport.h
 unix:SOURCES += qextserialport/posix_qextserialport.cpp
@@ -70,5 +80,4 @@ win32:HEADERS += qextserialport/win_qextserialport.h
 win32:SOURCES += qextserialport/win_qextserialport.cpp
 win32:DEFINES += _TTY_WIN_
 win32:LIBS += -lsetupapi
-LIBS += -lqextserialport \
-    -loscpack
+LIBS += -lqextserialport

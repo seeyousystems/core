@@ -51,6 +51,13 @@ private:
 	virtual int coil_getAnalogSensorDistance();
 	virtual int coil_getBumpsAndWheelDrops();
 
+	virtual int arduino_getHeading();
+	virtual int arduino_getLeftPinger();
+	virtual int arduino_getRightPinger();
+	virtual int arduino_getFrontIR();
+	virtual int arduino_getLeftIR();
+	virtual int arduino_getRightIR();
+
 };
 
 #endif /* SEEYOUCONTROLLER_H_ */

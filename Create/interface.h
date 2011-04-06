@@ -64,6 +64,10 @@ private:
 	// Block Controller
 	QGroupBox *frameTopLeftBottom;
 
+	// Gui Global QGroupBox
+	QGroupBox *exclusiveBox;
+	QGroupBox *blockBox;
+
 	QWidget *tabBlockDriveController;
 	QTabWidget *tabNavigation;
 	QPushButton *btnBlockDriveForward;

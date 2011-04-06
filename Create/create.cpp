@@ -19,18 +19,16 @@
 #include "Task/Task.h"
 #include "Task/TaskManager.h"
 
-// OSC Libs
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
 #include <assert.h>
 
-int Create::arduino_active = 0;
+// TODO: If Arduino is not connected, set this variable to 0
+int Create::arduino_active = 1;
 
 Create::Create()
 {
-	// Init Create settings based on seeyouCreate.config file
-	//initCreate(new QSettings(QString("Resources/seeyouCreate.config"), QSettings::IniFormat));
 	// NULL everything for safety of deletion
 	coil = NULL;
 	arduino = NULL;
@@ -57,9 +55,8 @@ Create::Create()
 	this->heatSpotSize = this->longSetting("HEAT_SPOT_SIZE_MM");
 	connected = false;
 
-		// Init maps and objects
-		//initMapsAndObjects();
-
+	// Init maps and objects
+	//initMapsAndObjects();
 }
 
 Create::~Create()
@@ -78,8 +75,6 @@ Create::~Create()
 
 	if(settings) delete settings;
 }
-
-
 
 bool Create::connect(QString strSerialPort, bool safeMode)
 {
@@ -121,7 +116,7 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 		Debug::print("[Create] entered full mode");
 	}
 
-	// Restet LED's
+	// Reset LED's
 	coil->setLEDState(COIL::LED_ADVANCE | COIL::LED_PLAY, 0, 255);
 
 	// Init Communication with Arduino
@@ -138,40 +133,12 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 		//		return false; // TODO:
 		//	}
 
+		// Wait for 2 seconds for Arduino to be stable
 		SleeperThread::msleep(2000);
 
 		// Set LED to indicate initialization
 		arduino->setLEDState();
-		Debug::print("Compass: %1", arduino->readCompass());
-		Debug::print("Left: %1", arduino->readLeftPinger());
-		Debug::print("Right: %1", arduino->readRightPinger());
-		Debug::print("Front: %1", arduino->readInfraredFront());
 	}
-
-
-
-
-	// Test read packet from arduino
-//	byte *buffer;
-//	int result = 0;
-//	buffer = (byte*)malloc(2 * sizeof(byte));
-//	if(NULL != buffer)
-//	{
-//		buffer[0] = 0; buffer[1] = 0;
-//		if (-1 == arduino->readRawSensor (buffer, 2))
-//		{
-//			free (buffer);
-//			//return INT_MIN;
-//		}
-//		//buffer[0] = 0x30;
-//		//buffer[1] = 0x30;
-//
-//		result = (short) ((buffer[0] << 8) | buffer[1]);
-//	}
-//	free(buffer);
-//
-//	Debug::print("[Create] IR: %1", result);
-//	printf("[abraham] %d\n", result);
 
 	// Init movement tracker
 	/*if(strMovementTracker == "Raw Movement Tracker")*/ {
@@ -180,14 +147,12 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 
 	// Init controller
 	if(controller) { delete controller; controller = NULL; }
-	//controller = new BlockDriveController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
-	controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
-
-
+	controller = new SeeYouController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
+	//controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
 	assert(controller);
 
 	// Init Arduino controller
-	if(arduino_active) {
+	if(arduino_active == 1) {
 		if(arduinoController) { delete arduinoController; arduinoController = NULL; }
 		arduinoController = new SensorController(this, intSetting("SENSORCONTROLLER_SPEED"), intSetting("SENSORCONTROLLER_INTERVAL"));
 		assert(arduinoController);
@@ -204,8 +169,6 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	movementTracker->connectController(controller);
 	//movementTracker->connectMaps(this);
 
-	printf("****** %d  ********\n", intSetting("EMULATEDEMSSCONTROLLER_SPEED"));
-
 	// Success!
 	connected = true;
 	//emit createConnected();
@@ -217,7 +180,7 @@ void Create::run() {
 
 	// Kickoff the controller and navigator :)
 	if(controller) controller->start(QThread::NormalPriority);
-	if(arduino_active) {
+	if(arduino_active == 1) {
 		if(arduinoController) arduinoController->start(QThread::NormalPriority);
 	}
 	if(taskManager) taskManager->start(QThread::NormalPriority);
@@ -229,7 +192,7 @@ void Create::stop() {
 	// Shutdown controller and movement tracker
 	if(taskManager) taskManager->stop();
 	if(controller) controller->stop();
-	if(arduino_active) {
+	if(arduino_active == 1) {
 		if(arduinoController) arduinoController->stop();
 	}
 	Debug::print("[Core] Stopped");
@@ -261,6 +224,7 @@ bool Create::disconnect() {
 	if(coil) {
 		Debug::print("[Create] shutdown coil");
 		coil->setLEDState(0, 255, 255);
+		coil->enterPassiveMode();
 		coil->stopOI();
 		delete coil;
 		coil = NULL;
@@ -340,12 +304,6 @@ void Create::reset(){
 	emit coreReset();
 }
 
-
-
-
-
-
-
 bool Create::isConnected() {
 	return connected;
 }
@@ -380,11 +338,6 @@ QVariant Create::getSetting(QString key) {
 		return value;
 	}
 }
-
-
-
-
-
 
 //void Create::initCreate(QSettings *settings)
 //{

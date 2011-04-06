@@ -8,6 +8,7 @@
 #include "SeeYouController.h"
 
 #include "../COIL/COIL.h"
+#include "../COIL/ArduinoCOIL.h"
 #include "../Library/Debug.h"
 #include "../Library/SleeperThread.h"
 
@@ -58,80 +59,62 @@ void SeeYouController::run() {
 			if(create->boolSetting("SEEYOUCONTROLLER_EMERGENCY_STOP_ENABLED") == true && sharpIRSensor < create->intSetting("SEEYOUCONTROLLER_SHARP_IR_SENSOR_EMERGENCYSTOP_BUFFER_MM")) emergencyStop();
 		}
 
-//		// Processs movement
-//		distanceMoved += distanceDelta;
-//		angleTurned += angleDelta;
-//
-//		// Determine wheel speeds
-//		if (mode == SeeYouController::Idle || mode == SeeYouController::EmergencyStop) {
-//
-//			// Idle mode!
-//
-//			Lwheel = 0;
-//			Rwheel = 0;
-//
-//		} else if (mode == SeeYouController::Joystick) {
-//
-//			// Joystick mode!
-//
-//			if (this->yokeY == 0) {
-//				// Left or right
-//				Lwheel = (short) (this->speed * this->yokeX);
-//				Rwheel = -(short) (this->speed * this->yokeX);
-//
-//			} else {
-//				// Move forwards backwards
-//				Lwheel = (short) (this->speed * this->yokeY);
-//				Rwheel = (short) (this->speed * this->yokeY);
-//			}
-//
-//		} else if (mode == SeeYouController::Move) {
-//
-//			// Move mode!
-//
-//			Lwheel = speed;
-//			Rwheel = speed;
-//
-//		} else if (mode == SeeYouController::Turn) {
-//
-//			// Turn mode!
-//
-//			if (angleToTurn > 0) {
-//				Lwheel = -speed;
-//				Rwheel = +speed;
-//			} else {
-//				Lwheel = +speed;
-//				Rwheel = -speed;
-//			}
-//
-//		} else if (mode == SeeYouController::WheelDrive) {
-//
-//			// No change, just drive at current wheel values...
-//		}
-//
-//		// Send wheel speeds to COIL
-//		if(mode != SeeYouController::EmergencyStop) coil_directDrive(Lwheel, Rwheel);
+		// Processs movement
+		distanceMoved += distanceDelta;
+		angleTurned += angleDelta;
 
-		short Lwheel = 0;
-				short Rwheel = 0;
-				short speed = 0;
-				if (this->yokeY <= 0.06 && this->yokeY >= -0.06) {
-					speed = 150;
-					Lwheel = -(short)speed * (this->yokeX);
-					Rwheel =  (short)speed * (this->yokeX);
-				}
-				else {
-					short speed = (short) (this->speed * this->yokeY);
-					Lwheel = speed - (short)(speed * this->yokeX);
-					Rwheel = speed + (short)(speed * this->yokeX);
+		// Determine wheel speeds
+		if (mode == SeeYouController::Idle || mode == SeeYouController::EmergencyStop) {
 
-					// Fix
-					if (Lwheel > this->speed) Lwheel = this->speed;
-					if (Rwheel > this->speed) Rwheel = this->speed;
-					if (Lwheel < -this->speed) Lwheel = -this->speed;
-					if (Rwheel < -this->speed) Rwheel = -this->speed;
-				}
-				create->coil->directDrive(Lwheel, Rwheel);
+			// Idle mode!
+
+			Lwheel = 0;
+			Rwheel = 0;
+
+		} else if (mode == SeeYouController::Joystick) {
+
+			if (this->yokeY <= 0.06 && this->yokeY >= -0.06) {
+				Lwheel = -(short)this->speed * (this->yokeX);
+				Rwheel =  (short)this->speed * (this->yokeX);
+			}
+			else {
+				short speed = (short) (this->speed * this->yokeY);
+				Lwheel = speed - (short)(speed * this->yokeX);
+				Rwheel = speed + (short)(speed * this->yokeX);
+
+				// Fix
+				if (Lwheel > this->speed) Lwheel = this->speed;
+				if (Rwheel > this->speed) Rwheel = this->speed;
+				if (Lwheel < -this->speed) Lwheel = -this->speed;
+				if (Rwheel < -this->speed) Rwheel = -this->speed;
+			}
+
+		} else if (mode == SeeYouController::Move) {
+
+			// Move mode!
+
+			Lwheel = speed;
+			Rwheel = speed;
+
+		} else if (mode == SeeYouController::Turn) {
+
+			// Turn mode!
+
+			if (angleToTurn > 0) {
+				Lwheel = -speed;
+				Rwheel = +speed;
+			} else {
+				Lwheel = +speed;
+				Rwheel = -speed;
+			}
+
+		} else if (mode == SeeYouController::WheelDrive) {
+
+			// No change, just drive at current wheel values...
+		}
+
+		// Send wheel speeds to COIL
+		if(mode != SeeYouController::EmergencyStop) coil_directDrive(Lwheel, Rwheel);
 
 		// Sleep our interval...
 		this->msleep(interval);
@@ -234,4 +217,36 @@ int SeeYouController::coil_getAnalogSensorDistance() {
 int SeeYouController::coil_getBumpsAndWheelDrops() {
 	return create->coil->getBumpsAndWheelDrops();
 }
+
+// TODO: Understand this part - Arduino Data
+int SeeYouController::arduino_getHeading()
+{
+	return (int) create->arduino->readCompass();
+}
+
+int SeeYouController::arduino_getLeftPinger()
+{
+	return (int) create->arduino->readLeftPinger();
+}
+
+int SeeYouController::arduino_getRightPinger()
+{
+	return (int) create->arduino->readRightPinger();
+}
+
+int SeeYouController::arduino_getFrontIR()
+{
+	return (int) create->arduino->readInfraredFront();
+}
+
+int SeeYouController::arduino_getLeftIR()
+{
+	return (int) create->arduino->readInfraredLeft();
+}
+
+int SeeYouController::arduino_getRightIR()
+{
+	return (int) create->arduino->readInfraredRight();
+}
+
 

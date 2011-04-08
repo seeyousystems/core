@@ -47,7 +47,9 @@ public:
 			SENSOR_COMPASS,
 			SENSOR_LEFT_PINGER,
 			SENSOR_RIGHT_PINGER,
-			SENSOR_RFID
+			SENSOR_RFID,
+		    SENSOR_ALL_SENSORS,
+		    SENSOR_RESET_ALL
 	    }seeyou_sensor;
 
 
@@ -58,7 +60,7 @@ public:
 	int cwrite (QextSerialPort *port, byte* buf, int numbytes);
 	int cread (QextSerialPort *port, byte* buf, int numbytes);
 	int cread (QextSerialPort *port, byte* buf, int numbytes, seeyou_sensor sensors);
-
+	void resetvariables();
 
 private:
 	QextSerialPort *port;
@@ -70,6 +72,7 @@ private:
 	byte previousIR3Reading[2];
 	byte previousLeftPingReading[2];
 	byte previousRightPingReading[2];
+	byte previousRFID[2];
 
 
 
@@ -86,9 +89,9 @@ public:
     int readInfraredFront();
     int readInfraredLeft();
     int readInfraredRight();
+    int readRFID();
     void enableDebug();
     void disableDebug();
-
 
 };
 

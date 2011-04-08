@@ -32,6 +32,7 @@ ArduinoCOIL::ArduinoCOIL(QString portName) {
 		this->previousIR3Reading[i] = 0;
 		this->previousLeftPingReading[i] = 0;
 		this->previousRightPingReading[i] = 0;
+		this->previousRFID[i] = 0;
 	}
 
 	if(!port->open(QIODevice::ReadWrite | QIODevice::Unbuffered)) {
@@ -134,6 +135,7 @@ int ArduinoCOIL::cread (QextSerialPort *port, byte* buf, int numbytes, seeyou_se
 				case SENSOR_COMPASS:	memcpy(buf, this->previousCompassReading, 2); break;
 				case SENSOR_LEFT_PINGER:	memcpy(buf, this->previousLeftPingReading, 2); break;
 				case SENSOR_RIGHT_PINGER:	memcpy(buf, this->previousRightPingReading, 2); break;
+				case SENSOR_RFID:	memcpy(buf, this->previousRFID, 2); break;
 			}
 			return 2;
 		}
@@ -150,6 +152,7 @@ int ArduinoCOIL::cread (QextSerialPort *port, byte* buf, int numbytes, seeyou_se
 		case SENSOR_COMPASS:	memcpy(this->previousCompassReading, buf, 2); break;
 		case SENSOR_LEFT_PINGER:	memcpy(this->previousLeftPingReading, buf, 2); break;
 		case SENSOR_RIGHT_PINGER:	memcpy(this->previousRightPingReading, buf, 2); break;
+		case SENSOR_RFID:	memcpy(this->previousRFID, buf, 2); break;
 	}
 
 	if (debug)
@@ -247,6 +250,8 @@ int ArduinoCOIL::readSensor (seeyou_sensor packet)
 		case SENSOR_COMPASS:
 		case SENSOR_LEFT_PINGER:
 		case SENSOR_RIGHT_PINGER:
+		case SENSOR_RFID:
+		case SENSOR_RESET_ALL:
 			buffer = (byte*) malloc (2 * sizeof(byte));
 			if (NULL == buffer)
 				return INT_MIN;
@@ -298,6 +303,11 @@ int ArduinoCOIL::readInfraredRight()
 	return readSensor(SENSOR_IR_1);
 }
 
+int ArduinoCOIL::readRFID()
+{
+	return readSensor(SENSOR_RFID);
+}
+
 void ArduinoCOIL::enableDebug()
 {
 	debug = 1;
@@ -307,3 +317,9 @@ void ArduinoCOIL::disableDebug()
 {
 	debug = 0;
 }
+
+void ArduinoCOIL::resetvariables()
+{
+	readSensor(SENSOR_RESET_ALL);
+}
+

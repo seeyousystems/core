@@ -23,7 +23,7 @@ SensorController::SensorController(Create *create, int speed, int interval) :
 	frontIR = 0;
 	leftIR = 0;
 	rightIR = 0;
-
+	RFID = 0;
 	// Welcome VFF Algorithm
 	vffAI = VFF();
 }
@@ -41,16 +41,15 @@ void SensorController::run()
 		frontIR = arduino_getFrontIR();
 		leftIR = arduino_getLeftIR();
 		rightIR = arduino_getRightIR();
+		RFID = arduino_getRFID();
 		long x = create->movementTracker->x();
 		long y = create->movementTracker->y();
 		Trafo2D point = create->movementTracker->transformation;
+		Debug::print("[SensorController] RFID: %1", RFID);
 
-		printf("[SensorController] %d, %d\n", x, y);
-		//point.print();
-		printf("%f,%f\n", point.trans().x(), point.trans().y());
-
-		//vffAI.
-
+//		printf("[SensorController] %d, %d\n", x, y);
+//		//point.print();
+//		printf("%f,%f\n", point.trans().x(), point.trans().y());
 
 		//Debug::print("[ArduinoController] Left: %1  front: %2  Right: %3  Heading: %4", leftIR, frontIR, rightIR, heading);
 		//Debug::print("Heading: %1", heading);
@@ -88,3 +87,14 @@ int SensorController::arduino_getRightIR()
 {
 	return (int) create->arduino->readInfraredRight();
 }
+
+int SensorController::arduino_getRFID()
+{
+	return (int) create->arduino->readRFID();
+}
+
+void SensorController::arduino_resetSensors()
+{
+	create->arduino->resetvariables();
+}
+

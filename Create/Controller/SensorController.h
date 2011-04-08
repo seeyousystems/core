@@ -25,6 +25,7 @@ public:
 	int frontIR;
 	int leftIR;
 	int rightIR;
+	int RFID;
 
 
 public:
@@ -39,6 +40,8 @@ private:
 	virtual int arduino_getFrontIR();
 	virtual int arduino_getLeftIR();
 	virtual int arduino_getRightIR();
+	virtual int arduino_getRFID();
+	virtual void arduino_resetSensors();
 };
 
 #endif /* SENSORCONTROLLER_H_ */

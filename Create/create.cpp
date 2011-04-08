@@ -138,6 +138,7 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 
 		// Set LED to indicate initialization
 		arduino->setLEDState();
+		arduino->resetvariables();
 	}
 
 	// Init movement tracker

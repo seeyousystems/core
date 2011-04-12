@@ -19,7 +19,6 @@
 #include <vector>
 
 
-
 #include "Grid.h"
 
 using namespace std;
@@ -35,6 +34,7 @@ public:
     ~VFF();
 
     void run();
+    void run( int ir0, int ir1, int ir2, int ir3, int ir4, int globalX, int globalY );
     void createHashTables();
     void createHashTables( int numberOfSensors, int fieldOfView, int offSet );
 

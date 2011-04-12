@@ -72,6 +72,7 @@ signals:
 	void signalChangedAngle(double angle);
 	void signalCollision();
 	void signalObjectDetected(double distance, double angle);
+
 };
 
 #endif /* CONTROLLER_H_ */

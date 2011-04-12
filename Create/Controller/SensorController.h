@@ -9,14 +9,14 @@
 #define SENSORCONTROLLER_H_
 
 #include "ArduinoController.h"
-#include "../Library/Algorithm/VFF.h"
+//#include "../Library/Algorithm/VFF.h"
 
 class SensorController : public ArduinoController {
 
 	Q_OBJECT
 
 private:
-	VFF vffAI;
+	//VFF vffAI;
 public:
 	short speed;
 	int heading;
@@ -26,7 +26,6 @@ public:
 	int leftIR;
 	int rightIR;
 	int RFID;
-
 
 public:
 	SensorController(Create *create, int speed, int interval);

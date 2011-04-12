@@ -207,7 +207,7 @@ int ArduinoCOIL::readRawSensor (seeyou_sensor packet, byte* buffer, int size)
 		return -1;
 	}
 
-	SleeperThread::msleep(40); // BUG: Why must we sleep? RTFM...
+	SleeperThread::msleep(1); // BUG: Why must we sleep? RTFM...
 
 	numread = cread (port, buffer, size, packet);
 	if (numread < 0)

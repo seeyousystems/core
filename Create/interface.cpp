@@ -12,6 +12,7 @@
 #include "MovementTracker/MovementTracker.h"
 
 #include "Controller/Controller.h"
+#include "Controller/ArduinoController.h"
 
 #include "Task/Task.h"
 #include "Task/TaskManager.h"
@@ -38,6 +39,7 @@ Interface::Interface(QWidget *parent)
 	mainLayout->addWidget(createControlsExclusiveGroup(), 0, 0);
 	//mainLayout->addWidget(createButtonsExclusiveGroup(), 0, 1);
 	mainLayout->addWidget(createBlockControllerExclusiveGroup(), 0, 1);
+	mainLayout->addWidget(createSensorExclusiveGroup(), 0, 2);
 	setLayout(mainLayout);
 	setWindowTitle(tr("SeeYou Systems"));
 	resize(640, 240);
@@ -50,6 +52,13 @@ Interface::Interface(QWidget *parent)
 	connect(sliderDistance, SIGNAL(valueChanged(int)), lcdDistance, SLOT(display(int)));
 	connect(sliderSpeed, SIGNAL(valueChanged(int)), lcdSpeed, SLOT(display(int)));
 	connect(sliderAngle, SIGNAL(valueChanged(int)), lcdAngle, SLOT(display(int)));
+
+	// LCD's for sensors connections
+//	connect(create->arduinoController, SIGNAL(create->arduinoController->leftSensorSignal(int)), lcdLeft, SLOT(display(int)));
+//	connect(create->arduinoController, SIGNAL(upperLeftSensorSignal(int)), lcdUpperLeft, SLOT(display(int)));
+//	connect(create->arduinoController, SIGNAL(frontSensorSignal(int)), lcdFront, SLOT(display(int)));
+//	connect(create->arduinoController, SIGNAL(upperRightSensorSignal(int)), lcdUpperRight, SLOT(display(int)));
+//	connect(create->arduinoController, SIGNAL(rightSensorSignal(int)), lcdRight, SLOT(display(int)));
 
 	// Set default values
 	sliderDistance->setRange(0, 1000);
@@ -233,12 +242,64 @@ void Interface::currentTask(int index)
 	}
 	else if(task == "Straight Path Move") {
 		//create->addTask(new StraightPathMoveTask(create,0,100 * create->scale, this->sliderSpeed->value()));
-		create->addTask(new StraightPathMoveTask(create,50000,50100, this->sliderSpeed->value()));
+		create->addTask(new StraightPathMoveTask(create,0,245, this->sliderSpeed->value()));
 
 	}
 	else if(task == "Wall Follower") {
 		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
 	}
+}
+
+QGroupBox *Interface::createSensorExclusiveGroup()
+{
+	sensorBox = new QGroupBox(tr("S&ensor Box"));
+
+	sensorBox->setCheckable(false);
+	sensorBox->setChecked(true);
+
+	// Sensor Controller
+	QGridLayout *layoutTopLeftBottomMaster = new QGridLayout();
+	QFrame *frameTopLeftBottomNavigation = new QFrame();
+	QGridLayout *layoutTopLeftBottomNavigation = new QGridLayout();
+	frameTopLeftBottomNavigation->setLayout(layoutTopLeftBottomNavigation);
+
+
+	// Set up lcd objects
+	lcdLeft = new QLCDNumber();
+	lcdLeft->setFrameStyle(QFrame::NoFrame);
+	lcdLeft->setSegmentStyle(QLCDNumber::Flat);
+
+	lcdUpperLeft = new QLCDNumber();
+	lcdUpperLeft->setFrameStyle(QFrame::NoFrame);
+	lcdUpperLeft->setSegmentStyle(QLCDNumber::Flat);
+
+	lcdFront = new QLCDNumber();
+	lcdFront->setFrameStyle(QFrame::NoFrame);
+	lcdFront->setSegmentStyle(QLCDNumber::Flat);
+
+	lcdUpperRight = new QLCDNumber();
+	lcdUpperRight->setFrameStyle(QFrame::NoFrame);
+	lcdUpperRight->setSegmentStyle(QLCDNumber::Flat);
+
+	lcdRight = new QLCDNumber();
+	lcdRight->setFrameStyle(QFrame::NoFrame);
+	lcdRight->setSegmentStyle(QLCDNumber::Flat);
+
+	layoutTopLeftBottomNavigation->addWidget(new QLabel("Left:"), 1, 0);
+	layoutTopLeftBottomNavigation->addWidget(lcdLeft, 2, 0);
+	layoutTopLeftBottomNavigation->addWidget(new QLabel("UpperLeft:"), 3, 0);
+	layoutTopLeftBottomNavigation->addWidget(lcdUpperLeft, 4, 0);
+	layoutTopLeftBottomNavigation->addWidget(new QLabel("Front:"), 5, 0);
+	layoutTopLeftBottomNavigation->addWidget(lcdFront, 6, 0);
+	layoutTopLeftBottomNavigation->addWidget(new QLabel("UpperRight:"), 7, 0);
+	layoutTopLeftBottomNavigation->addWidget(lcdUpperRight, 8, 0);
+	layoutTopLeftBottomNavigation->addWidget(new QLabel("Right:"), 9, 0);
+	layoutTopLeftBottomNavigation->addWidget(lcdRight, 10, 0);
+	layoutTopLeftBottomMaster->addWidget(frameTopLeftBottomNavigation, 11, 0);
+
+	sensorBox->setLayout(layoutTopLeftBottomMaster);
+
+	return sensorBox;
 }
 
 QGroupBox *Interface::createControlsExclusiveGroup()
@@ -251,7 +312,7 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 
 	// Joystick
 	joystick = new JoystickView(JoystickView::JOYSTICK_MODE_FREE);
-	joystick->acceleration = JoystickView::JOYSTICK_ACCELERATION_INSTANT;
+	joystick->acceleration = JoystickView::JOYSTICK_ACCELERATION_SLOWDOWN;
 	joystickFluidController = new JoystickView(JoystickView::JOYSTICK_MODE_FREE);
 	joystickFluidController->acceleration = JoystickView::JOYSTICK_ACCELERATION_SLOWDOWN;
 
@@ -302,7 +363,7 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 	vbox->addWidget(btnAbort);
 	vbox->addWidget(cbPort);
 	//vbox->addWidget(cbTask);
-	vbox->addStretch(1);
+	//vbox->addStretch(1);
 	exclusiveBox->setLayout(vbox);
 
 	return exclusiveBox;
@@ -334,8 +395,8 @@ QGroupBox *Interface::createBlockControllerExclusiveGroup()
 	btnBlockDriveBackward = new QPushButton("Backwards");
 	layoutTopLeftBottomNavigation->addWidget(btnBlockDriveBackward, 2, 1);
 	layoutTopLeftBottomMaster->addWidget(frameTopLeftBottomNavigation, 0, 0);
-	sliderDistance = new QSlider();
-	layoutTopLeftBottomMaster->addWidget(sliderDistance, 0, 1);
+	sliderDistance = new QSlider(Qt::Horizontal);
+	layoutTopLeftBottomMaster->addWidget(sliderDistance, 1, 0);
 	sliderSpeed = new QSlider(Qt::Horizontal);
 	//layoutTopLeftBottomMaster->addWidget(sliderSpeed, 1, 0);
 	sliderAngle = new QSlider(Qt::Horizontal);
@@ -352,8 +413,8 @@ QGroupBox *Interface::createBlockControllerExclusiveGroup()
 	lcdDistance = new QLCDNumber();
 	lcdDistance->setFrameStyle(QFrame::NoFrame);
 	lcdDistance->setSegmentStyle(QLCDNumber::Flat);
-	layoutTopLeftBottomMaster->addWidget(new QLabel("Distance:"), 0, 2);
-	layoutTopLeftBottomMaster->addWidget(lcdDistance, 0, 3);
+	layoutTopLeftBottomMaster->addWidget(new QLabel("Distance:"), 2, 0);
+	layoutTopLeftBottomMaster->addWidget(lcdDistance, 2, 0);
 
 	cbSlowStart = new QComboBox();
 	cbSlowStart->addItem("Off");

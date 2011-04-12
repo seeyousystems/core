@@ -6,6 +6,7 @@
 #include "Library/Debug.h"
 #include "Library/Util.h"
 #include "Library/SleeperThread.h"
+#include "Library/Algorithm/VFF.h"
 
 
 #include "MovementTracker/RawMovementTracker.h"
@@ -41,10 +42,13 @@ Create::Create()
 
 	settings = NULL;
 
+	vffAI = NULL;
+
 	// Load settings and default values if needed
 	settings = new QSettings(QString("Resources/emssCore.config"), QSettings::IniFormat);
 
-	// Init
+	// Init	QLCDNumber *lcdLeft;
+
 	this->scale = this->longSetting("MOVEMENT_SCALE");
 	this->robotStartingPositionX = this->longSetting("ROBOT_STARTING_POSITION_X_MM");
 	this->robotStartingPositionY = this->longSetting("ROBOT_STARTING_POSITION_Y_MM");
@@ -74,11 +78,18 @@ Create::~Create()
 	if(taskManager) delete taskManager;
 
 	if(settings) delete settings;
+
+	if(vffAI) delete vffAI;
 }
 
 bool Create::connect(QString strSerialPort, bool safeMode)
 {
 	Debug::error("[Create] opening port");
+
+	// Init Virtual Force Field VFF
+	if(vffAI) { delete vffAI; vffAI = NULL; }
+	vffAI = new VFF();
+	assert(vffAI);
 
 	// Init Communication with iRobot
 	if(coil) { delete coil; coil = NULL; }

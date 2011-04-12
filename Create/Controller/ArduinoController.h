@@ -35,6 +35,12 @@ public:
 
 signals:
 	void signalObjectDetected(double distance, double angle);
+	/* Signals for sensors */
+	void leftSensorSignal(int left);
+	void upperLeftSensorSignal(int upperLeft);
+	void frontSensorSignal(int front);
+	void upperRightSensorSignal(int upperRight);
+	void rightSensorSignal(int right);
 };
 
 #endif /* ARDUINOCONTROLLER_H_ */

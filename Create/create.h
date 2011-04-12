@@ -7,6 +7,7 @@
 #include <QSettings>
 
 #include "math.h"
+#include "Library/Algorithm/VFF.h"
 #include <QTimer>
 
 // Forwards declarations
@@ -31,6 +32,7 @@ class ArduinoController;
 
 class Task;
 class TaskManager;
+
 
 class Create : public QObject
 {
@@ -63,6 +65,7 @@ public:
 
 	COIL *coil;
 	ArduinoCOIL *arduino;
+	VFF *vffAI;
 
 //	GridMap *gridMap;
 //	HeatMap *heatMap;

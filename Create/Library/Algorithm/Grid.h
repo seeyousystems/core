@@ -14,7 +14,7 @@
 using namespace std;
 
 // PI constant
-const double _PI = 3.141592;
+const double _PI = 3.141592653589793238462643383279f;
 const double TO_DEGREES = _PI / 180.0;
 
 // Constants for metric system
@@ -69,8 +69,8 @@ public:
         double distance;
         int position;
         int certainValue;
-        int x, i;
-        int y, j;
+        int x, i, gx, centerX;
+        int y, j, gy, centerY;
         double force;
     } CELL;
 
@@ -88,9 +88,16 @@ public:
     POINT getPointFromDistance( double angle, double distanceFromObject );
     vector<POINT> hashPointTable( double angle, double min, double max );
     void updateCV( vector<POINT> *p, double angle, double distanceFromObject );
+    void updateCV( vector<POINT> *p, double angle, double distanceFromObject, int gx, int gy );
 
-    // Force Field Functions
+
+    // Force Field functions
     void updateForceField( vector<vector<POINT > > *p );
+    // Attractive Force Field function
+    void updateAttractiveForceField();
+    // Update coordinates
+    void updateCoordinates( vector<vector<POINT > > *p, int gx, int gy );
+
     POINT getCoor( int x, int y );
 
 
@@ -103,6 +110,9 @@ private:
 
     int Fmag_i, Fmag_j;
     double DFmag_i, DFmag_j;
+
+    double DAFmag_i, DAFmag_j;
+    double Rmag_i, Rmag_j;
 
     vector<vector<CELL> > Histogram;
 

@@ -58,6 +58,13 @@ private:
 	QLCDNumber *lcdSpeed;
 	QLCDNumber *lcdAngle;
 
+	// LCD for Sensors
+	QLCDNumber *lcdLeft;
+	QLCDNumber *lcdUpperLeft;
+	QLCDNumber *lcdFront;
+	QLCDNumber *lcdUpperRight;
+	QLCDNumber *lcdRight;
+
 	// CheckBox
 	QCheckBox *checkNegativeAngle;
 
@@ -67,6 +74,7 @@ private:
 	// Gui Global QGroupBox
 	QGroupBox *exclusiveBox;
 	QGroupBox *blockBox;
+	QGroupBox *sensorBox;
 
 	QWidget *tabBlockDriveController;
 	QTabWidget *tabNavigation;
@@ -78,6 +86,7 @@ private:
 	QGroupBox *createControlsExclusiveGroup();
 	QGroupBox *createButtonsExclusiveGroup();
 	QGroupBox *createBlockControllerExclusiveGroup();
+	QGroupBox *createSensorExclusiveGroup();
 
 
 public:

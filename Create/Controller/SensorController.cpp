@@ -25,7 +25,7 @@ SensorController::SensorController(Create *create, int speed, int interval) :
 	rightIR = 0;
 	RFID = 0;
 	// Welcome VFF Algorithm
-	vffAI = VFF();
+	//vffAI = VFF();
 }
 
 SensorController::~SensorController() {
@@ -36,22 +36,40 @@ void SensorController::run()
 	// Enter processing loop
 	stopRequested = false;
 	while (stopRequested == false) {
+//		static int x = 0;
 
-		heading = arduino_getHeading();
+		// Get sensor data
+//		heading = arduino_getHeading();
 		frontIR = arduino_getFrontIR();
 		leftIR = arduino_getLeftIR();
 		rightIR = arduino_getRightIR();
-		RFID = arduino_getRFID();
+		leftPinger = arduino_getLeftPinger();
+		rightPinger = arduino_getRightPinger();
+		//RFID = arduino_getRFID();
+
+		// Emit signals for widgets
+//		emit leftSensorSignal(leftPinger);
+//		emit upperLeftSensorSignal(leftIR);
+//		emit frontSensorSignal(frontIR);
+//		emit upperRightSensorSignal(rightIR);
+//		emit rightSensorSignal(rightPinger);
+
+		// Get global position
 		long x = create->movementTracker->x();
 		long y = create->movementTracker->y();
-		Trafo2D point = create->movementTracker->transformation;
-		Debug::print("[SensorController] RFID: %1", RFID);
 
-//		printf("[SensorController] %d, %d\n", x, y);
+		// Update obstacle avoidance algorithm (we are working with cm not mm)
+		//create->vffAI->run();
+		//create->vffAI->run( leftPinger, rightIR, frontIR, leftIR, rightPinger, x/10, y/10 );
+//		printf("[ArduinoController] Left: %3d  UpperLeft: %3d  Front: %3d  UpperRight: %3d  Right: %3d\n", leftPinger, leftIR, frontIR, rightIR, rightPinger);
+		//create->vffAI->run();
+//		Debug::print("[SensorController] RFID: %1", RFID);
+//		Debug::print("Test: %1\n", ++x);
+//		printf("[SensorController] %d, %d\n", x/10, y/10);
 //		//point.print();
 //		printf("%f,%f\n", point.trans().x(), point.trans().y());
 
-		//Debug::print("[ArduinoController] Left: %1  front: %2  Right: %3  Heading: %4", leftIR, frontIR, rightIR, heading);
+		//Debug::print("[ArduinoController] Left: %1  Right: %3  Heading: %4", leftPinger, rightPinger, heading);
 		//Debug::print("Heading: %1", heading);
 		// Sleep our interval...
 		this->msleep(interval);

@@ -6,7 +6,7 @@
  */
 
 #include "Grid.h"
-#include "math.h"
+#include <cmath>
 #include <iomanip>
 #include <stdio.h>
 
@@ -30,6 +30,11 @@ Grid::Grid( double widthOfCell, int widthOfGrid, double angleOfSensor ) :
 	Fmag_j = 0;
 	DFmag_i = 0.0;
 	DFmag_j = 0.0;
+	DAFmag_i = 0.0;
+	DAFmag_j = 0.0;
+	Rmag_i = 0.0;
+	Rmag_j = 0.0;
+
     int index = 0;
     middle = (width - 1) / 2;
     printf("mmm: %d  ww: %d", middle, widthOfGrid);
@@ -75,6 +80,12 @@ void Grid::pushCellToGrid( int x, int y, int index )
     p = getCoor(x,y);
     cell.i = p.x;
     cell.j = p.y;
+    // Global space
+    cell.gx = 0;
+    cell.gy = 0;
+    // TODO: Midpoint of global space
+    cell.centerX = 0;
+    cell.centerY = 0;
     cell.force = 0.0;
     Histogram[x][y] = cell;
 }
@@ -82,6 +93,17 @@ void Grid::pushCellToGrid( int x, int y, int index )
 void Grid::display( std::ostream & out )
 {
     POINT ptx;
+
+    //double crap = (double)(Fmag_j / Fmag_i);
+    double m = (double)Fmag_i;
+    double n = (double)Fmag_j;
+    double sss = 0.0;
+    if( n == 0.0 )
+    	sss = 0.0;
+    else
+    	sss = n / m;
+
+    out<<  ( atan( sss ) * 180 / _PI ) << endl;
     for ( unsigned int j = 0; j < Histogram.size(); j++ )
     {
         for ( unsigned int i = 0; i < Histogram[j].size(); i++ )
@@ -94,6 +116,9 @@ void Grid::display( std::ostream & out )
         }
         out << endl;
     }
+
+    Fmag_i = 0;
+    Fmag_j = 0;
 }
 
 template<typename DataType>
@@ -339,6 +364,74 @@ vector<int> Grid::getBinaryHistogram()
     return binaryHist;
 }
 
+/** \brief Updates certainty value of corresponding cell
+ *
+ * 	This command updates cells with a certainty value and
+ * 	updates local coordinates to global coordinates.
+ *
+ * 	\param
+ *
+ *  \return	void
+ */
+void Grid::updateCV( vector<POINT> *p, double angle, double distanceFromObject, int gx, int gy )
+{
+    POINT pt;
+
+    // Get Cell point that corresponds to a given distance
+    pt = getPointFromDistance( angle, distanceFromObject );
+
+    // If a Point is outside our grid, the grid has to be clear!!!
+    if ( pt.x > (width - 1) || pt.y > (width - 1) || pt.x < 0 || pt.y < 0 )
+    {
+        for ( int i = 0; i < p->size(); i++ )
+        {
+            // Get values to speed up process
+            int x = p->at( i ).x;
+            int y = p->at( i ).y;
+            if ( Histogram[x][y].certainValue != CVMin )
+            {
+                Histogram[x][y].certainValue += CVIdec;
+            }
+        }
+        return;
+    }
+
+    // Iterate through points (Hash Table) of given angle
+    for ( int i = 0; i < p->size(); i++ )
+    {
+        // Get values to speed up process
+        int x = p->at( i ).x;
+        int y = p->at( i ).y;
+
+        // If given point equals the vector then increment CV
+        if ( x == pt.x && y == pt.y )
+        {
+            // Update corresponding cell
+            Histogram[x][y].certainValue += CVIinc;
+
+            // Update distance from origin to this Cell
+            Histogram[x][y].distance = distanceFromObject;
+
+            if ( Histogram[x][y].certainValue >= CVMax )
+                Histogram[x][y].certainValue = CVMax;
+        }
+        // If given point has a value greater than 0 then decrement CV
+        else if ( Histogram[x][y].certainValue != CVMin )
+        {
+            Histogram[x][y].certainValue += CVIdec;
+        }
+    }
+}
+
+/** \brief Updates force field
+ *
+ * 	This command updates cells the force field value
+ * 	calculated from the VFF algorithm.
+ *
+ * 	\param 2D vector
+ *
+ *  \return	void
+ */
 void Grid::updateForceField( vector<vector<POINT > > *p )
 {
 	//TODO: I need to send hash table with all vectors included instead
@@ -372,19 +465,19 @@ void Grid::updateForceField( vector<vector<POINT > > *p )
 		}
 	}
 
-	double dx, dy;
-	dx = -8.0;
-	dx = 10.0;
-
-	dx = dx + DFmag_i;
-	dy = dy + DFmag_j;
-
-
-	printf("Resultant: [%.2f,%.2f]\n", dx, dy);
-	DFmag_i = 0.0;
-	DFmag_j = 0.0;
-	dx = 0.0;
-	dy = 0.0;
+//	double dx, dy;
+//	dx = -8.0;
+//	dx = 10.0;
+//
+//	dx = dx + DFmag_i;
+//	dy = dy + DFmag_j;
+//
+//
+//	//printf("Resultant: [%.2f,%.2f]", DFmag_i, DFmag_j);
+//	DFmag_i = 0.0;
+//	DFmag_j = 0.0;
+//	dx = 0.0;
+//	dy = 0.0;
 
 	/*// Calculate resultant repulsive force (vectorial sum from all individual cells)
 	for (int i = 0; i < p->size(); i++)
@@ -403,6 +496,100 @@ void Grid::updateForceField( vector<vector<POINT > > *p )
 			F_j += Histogram[x][y].j;
 		}
 	}*/
+}
+
+/** \brief Updates force field
+ *
+ * 	This command updates cells the force field value
+ * 	calculated from the VFF algorithm.
+ *
+ * 	\param 2D vector
+ *
+ *  \return	void
+ */
+void Grid::updateAttractiveForceField()
+{
+	//TODO: to be continue
+
+	// Force variable must be set to a specific number
+	double Force = 5000.0;
+
+	// POINT is a struct of two integers (x and y)
+	POINT target;
+
+	// Let's simulate a desire target
+	target.x = 0;
+	target.y = 245;
+
+	// Calculation for distance
+	double x = ( double )( target.x - Histogram[10][0].centerX );
+	double y = ( double )( target.y - Histogram[10][0].centerY );
+
+//	printf("%f, %f\n" , _x, _y);
+//	printf("%d, %d\n" , Histogram[5][0].gx, Histogram[5][0].gy);
+
+	// Calculate distance between target coor. and robot coor.
+
+	double distance = sqrt( ((x * x) + (y * y)) );
+
+	//printf("Point:(%.2f, %.2f)  Distance: %.2f\n", x, y, distance);
+
+	// Attractive force vector
+	DAFmag_i = Force * ( x  / distance );
+	DAFmag_j = Force * ( y  / distance );
+
+	Rmag_i = DAFmag_i + DFmag_i;
+	Rmag_j = DAFmag_j + DFmag_j;
+
+	//printf("Resultant: %.2f, %.2f\n", Rmag_i, Rmag_j);
+
+	//printf( "Delta: %.2f,  %.2f \n", Fmag_j, Fmag_i );
+
+	// Reset Forces
+	DFmag_i = 0.0;
+	DFmag_j = 0.0;
+
+	DAFmag_i = 0.0;
+	DAFmag_j = 0.0;
+
+//	Fmag_i = 0;
+//	Fmag_j = 0;
+
+	//printf("Point:(%.2f, %.2f)  Distance: %.2f", x, y, distance);
+	//printf("\tAttractive: [%.2f,%.2f]\n", DAFmag_i, DAFmag_j);
+
+}
+
+/** \brief Updates coordinates
+ *
+ * 	This command updates global coordinates
+ *
+ * 	\param 2D vector
+ *
+ *  \return	void
+ */
+void Grid::updateCoordinates( vector<vector<POINT > > *p, int gx, int gy )
+{
+	for( int sensor = 0; sensor < p->size(); sensor++)
+	{
+		for (int i = 0; i < p->at(sensor).size(); i++)
+		{
+			// Get values to speed up process
+			int x = p->at(sensor).at(i).x;
+			int y = p->at(sensor).at(i).y;
+
+			// Update global coordinates
+			Histogram[x][y].gx = Histogram[x][y].i + gx;
+			Histogram[x][y].gy = Histogram[x][y].j + gy;
+
+			// Update global Vehicle Center Point (VCP) coordinates
+			Histogram[x][y].centerX = gx;
+			Histogram[x][y].centerY = gy;
+
+			//printf( "%d, %d\n", x, y );
+		}
+		//printf("\n");
+	}
 }
 
 POINT Grid::getCoor( int x, int y )

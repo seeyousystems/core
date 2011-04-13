@@ -47,7 +47,7 @@ const int CVIinc = 3;
 const int CVIdec = -1;
 
 // Force constant (repelling)
-const int F_CR = -30000;
+const int F_CR = 5000;
 
 // Present coordinates of robot
 const int X0 = 0;
@@ -110,6 +110,9 @@ private:
 
     int Fmag_i, Fmag_j;
     double DFmag_i, DFmag_j;
+
+    // Angle of repulsive force
+    double oMega;
 
     double DAFmag_i, DAFmag_j;
     double Rmag_i, Rmag_j;

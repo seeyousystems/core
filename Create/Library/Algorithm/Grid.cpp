@@ -34,6 +34,7 @@ Grid::Grid( double widthOfCell, int widthOfGrid, double angleOfSensor ) :
 	DAFmag_j = 0.0;
 	Rmag_i = 0.0;
 	Rmag_j = 0.0;
+	oMega = 0.0;
 
     int index = 0;
     middle = (width - 1) / 2;
@@ -103,7 +104,7 @@ void Grid::display( std::ostream & out )
     else
     	sss = n / m;
 
-    out<<  ( atan( sss ) * 180 / _PI ) << endl;
+    out<<  ( atan( sss ) * 180 / _PI ) << "\t"  << DAFmag_i << ", " << DAFmag_j << endl;
     for ( unsigned int j = 0; j < Histogram.size(); j++ )
     {
         for ( unsigned int i = 0; i < Histogram[j].size(); i++ )
@@ -518,21 +519,21 @@ void Grid::updateAttractiveForceField()
 	POINT target;
 
 	// Let's simulate a desire target
-	target.x = 0;
-	target.y = 245;
+	target.x = 50;
+	target.y = 210;
 
 	// Calculation for distance
-	double x = ( double )( target.x - Histogram[10][0].centerX );
-	double y = ( double )( target.y - Histogram[10][0].centerY );
+	double x = ( double )( target.x - Histogram[11][8].centerX );
+	double y = ( double )( target.y - Histogram[11][8].centerY );
 
 //	printf("%f, %f\n" , _x, _y);
-//	printf("%d, %d\n" , Histogram[5][0].gx, Histogram[5][0].gy);
+//	printf("%d, %d\n" , Histogram[11][8].centerX, Histogram[11][8].centerY);
 
 	// Calculate distance between target coor. and robot coor.
 
 	double distance = sqrt( ((x * x) + (y * y)) );
 
-	//printf("Point:(%.2f, %.2f)  Distance: %.2f\n", x, y, distance);
+	printf("Point:(%.2f, %.2f)  Distance: %.2f\n", x, y, distance);
 
 	// Attractive force vector
 	DAFmag_i = Force * ( x  / distance );
@@ -541,7 +542,7 @@ void Grid::updateAttractiveForceField()
 	Rmag_i = DAFmag_i + DFmag_i;
 	Rmag_j = DAFmag_j + DFmag_j;
 
-	//printf("Resultant: %.2f, %.2f\n", Rmag_i, Rmag_j);
+//	printf("Atractive: %.2f, %.2f\n", DAFmag_i, DAFmag_j);
 
 	//printf( "Delta: %.2f,  %.2f \n", Fmag_j, Fmag_i );
 
@@ -586,7 +587,7 @@ void Grid::updateCoordinates( vector<vector<POINT > > *p, int gx, int gy )
 			Histogram[x][y].centerX = gx;
 			Histogram[x][y].centerY = gy;
 
-			//printf( "%d, %d\n", x, y );
+			///printf( "%d, %d\n", x, y );
 		}
 		//printf("\n");
 	}

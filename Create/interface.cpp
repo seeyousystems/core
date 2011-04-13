@@ -242,7 +242,7 @@ void Interface::currentTask(int index)
 	}
 	else if(task == "Straight Path Move") {
 		//create->addTask(new StraightPathMoveTask(create,0,100 * create->scale, this->sliderSpeed->value()));
-		create->addTask(new StraightPathMoveTask(create,0,245, this->sliderSpeed->value()));
+		create->addTask(new StraightPathMoveTask(create,500,2100, this->sliderSpeed->value()));
 
 	}
 	else if(task == "Wall Follower") {

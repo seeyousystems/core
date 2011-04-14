@@ -96,15 +96,15 @@ void Grid::display( std::ostream & out )
     POINT ptx;
 
     //double crap = (double)(Fmag_j / Fmag_i);
-    double m = (double)Fmag_i;
-    double n = (double)Fmag_j;
-    double sss = 0.0;
-    if( n == 0.0 )
-    	sss = 0.0;
-    else
-    	sss = n / m;
-
-    out<<  ( atan( sss ) * 180 / _PI ) << "\t"  << DAFmag_i << ", " << DAFmag_j << endl;
+//    double m = (double)Fmag_i;
+//    double n = (double)Fmag_j;
+//    double sss = 0.0;
+//    if( n == 0.0 )
+//    	sss = 0.0;
+//    else
+//    	sss = n / m;
+//
+//    out<<  ( atan( sss ) * 180 / _PI ) << "\t"  << DAFmag_i << ", " << DAFmag_j << endl;
     for ( unsigned int j = 0; j < Histogram.size(); j++ )
     {
         for ( unsigned int i = 0; i < Histogram[j].size(); i++ )
@@ -118,8 +118,8 @@ void Grid::display( std::ostream & out )
         out << endl;
     }
 
-    Fmag_i = 0;
-    Fmag_j = 0;
+//    Fmag_i = 0;
+//    Fmag_j = 0;
 }
 
 template<typename DataType>
@@ -533,7 +533,7 @@ void Grid::updateAttractiveForceField()
 
 	double distance = sqrt( ((x * x) + (y * y)) );
 
-	printf("Point:(%.2f, %.2f)  Distance: %.2f\n", x, y, distance);
+	//ssprintf("Point:(%.2f, %.2f)  Distance: %.2f\n", x, y, distance);
 
 	// Attractive force vector
 	DAFmag_i = Force * ( x  / distance );
@@ -541,6 +541,14 @@ void Grid::updateAttractiveForceField()
 
 	Rmag_i = DAFmag_i + DFmag_i;
 	Rmag_j = DAFmag_j + DFmag_j;
+
+	if (Fmag_i == 0.0)
+		oMega = 0.0;
+	else {
+		oMega = atan(Fmag_j/ Fmag_i) * 180.0 / _PI;
+		if( oMega < 0.0 )
+			oMega += 180.0;
+	}
 
 //	printf("Atractive: %.2f, %.2f\n", DAFmag_i, DAFmag_j);
 
@@ -552,6 +560,9 @@ void Grid::updateAttractiveForceField()
 
 	DAFmag_i = 0.0;
 	DAFmag_j = 0.0;
+
+	Fmag_j = 0.0;
+	Fmag_i = 0.0;
 
 //	Fmag_i = 0;
 //	Fmag_j = 0;

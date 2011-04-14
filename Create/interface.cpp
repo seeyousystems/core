@@ -242,8 +242,15 @@ void Interface::currentTask(int index)
 	}
 	else if(task == "Straight Path Move") {
 		//create->addTask(new StraightPathMoveTask(create,0,100 * create->scale, this->sliderSpeed->value()));
-		create->addTask(new StraightPathMoveTask(create,500,2100, this->sliderSpeed->value()));
-
+		create->addTask(new StraightPathMoveTask(create,0,1000, this->sliderSpeed->value()));
+//		if(create->vffAI->hist.sensorAngle > 60 && create->vffAI->hist.sensorAngle < 120)
+//		{
+//			//mode = SeeYouController::EmergencyStop;
+//
+//			create->boolSetting("SEEYOUCONTROLLER_EMERGENCY_STOP_ENABLED") == true;
+//
+//			create->controller->emergencyStop();
+//		}
 	}
 	else if(task == "Wall Follower") {
 		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'COIL.h'
 **
-** Created: Thu Mar 24 15:18:41 2011
+** Created: Wed Apr 13 11:55:28 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.6.2)
 **
 ** WARNING! All changes made in this file will be lost!

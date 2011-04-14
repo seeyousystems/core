@@ -30,6 +30,8 @@ const int RMax = 227;
 class VFF
 {
 public:
+	Grid hist;
+
     VFF();
     ~VFF();
 
@@ -41,7 +43,7 @@ public:
 private:
 
     vector <double> s;
-    Grid hist;
+    //Grid hist;
 
     //TODO: Move all vectors to a single 2D vector
     vector<POINT> SensorList;

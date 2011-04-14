@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'SeeYouController.h'
 **
-** Created: Thu Mar 24 15:18:38 2011
+** Created: Wed Apr 13 15:52:05 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.6.2)
 **
 ** WARNING! All changes made in this file will be lost!

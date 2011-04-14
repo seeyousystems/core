@@ -93,8 +93,26 @@ void SeeYouController::run() {
 
 			// Move mode!
 
-			Lwheel = speed;
-			Rwheel = speed;
+			if (create->vffAI->hist.oMega >= 45 && create->vffAI->hist.oMega <= 90.0)
+			{
+				Debug::print("[SeeYouController] Turn Left");
+				//mode = SeeYouController::EmergencyStop;
+				//emergencyStop();
+				Lwheel = -speed;
+				Rwheel = +speed;
+			}
+			else if (create->vffAI->hist.oMega >= 91 && create->vffAI->hist.oMega <= 135.0)
+			{
+				Debug::print("[SeeYouController] Turn Right");
+				Lwheel = +speed;
+				Rwheel = -speed;
+			}
+			else {
+				Debug::print("[SeeYouController] Vernon does not suck: %1", create->vffAI->hist.oMega);
+
+				Lwheel = speed;
+				Rwheel = speed;
+			}
 
 		} else if (mode == SeeYouController::Turn) {
 
@@ -111,6 +129,14 @@ void SeeYouController::run() {
 		} else if (mode == SeeYouController::WheelDrive) {
 
 			// No change, just drive at current wheel values...
+		}
+		else if (mode == SeeYouController::Avoidance) {
+//			if(create->vffAI->hist.oMega > 60 && create->vffAI->hist.oMega < -70)
+//			{
+//				Debug::print("[SeeYouController] Vernon sucks");
+//				mode = SeeYouController::EmergencyStop;
+//			}
+
 		}
 
 		// Send wheel speeds to COIL

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'interface.h'
 **
-** Created: Thu Mar 24 15:18:40 2011
+** Created: Wed Apr 13 11:55:27 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.6.2)
 **
 ** WARNING! All changes made in this file will be lost!

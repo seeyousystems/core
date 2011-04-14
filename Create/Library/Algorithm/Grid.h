@@ -56,6 +56,9 @@ const int Y0 = 0;
 class Grid
 {
 public:
+	 double sensorAngle;
+	 double oMega;
+
     //---- Constructor
     Grid();
     //Grid( int width, double cellWidth);
@@ -106,13 +109,13 @@ private:
     double cellWidth;
     int width;
     int middle;
-    double sensorAngle;
+//    double sensorAngle;
 
     int Fmag_i, Fmag_j;
     double DFmag_i, DFmag_j;
 
     // Angle of repulsive force
-    double oMega;
+   // double oMega;
 
     double DAFmag_i, DAFmag_j;
     double Rmag_i, Rmag_j;

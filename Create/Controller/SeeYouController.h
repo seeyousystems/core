@@ -9,12 +9,28 @@
 #define SEEYOUCONTROLLER_H_
 
 #include "Controller.h"
+#include <vector>
+
 
 class SeeYouController: public Controller {
 
 	Q_OBJECT
 
 public:
+    typedef struct
+    {
+    	int id;
+        double x;
+        double y;
+    } RFID_DB;
+    //RFID_DB *predefinedDB;
+
+    vector <RFID_DB> predefinedDB;
+
+    int test;
+	int tag;
+	int tag_buffer;
+	double obuffer;
 	short speed	;
 	double yokeX;
 	double yokeY;
@@ -57,6 +73,7 @@ private:
 	virtual int arduino_getFrontIR();
 	virtual int arduino_getLeftIR();
 	virtual int arduino_getRightIR();
+	virtual int arduino_getRFID();
 
 };
 

@@ -45,7 +45,7 @@ void SensorController::run()
 		rightIR = arduino_getRightIR();
 		leftPinger = arduino_getLeftPinger();
 		rightPinger = arduino_getRightPinger();
-		//RFID = arduino_getRFID();
+		RFID = arduino_getRFID();
 
 		// Emit signals for widgets
 //		emit leftSensorSignal(leftPinger);

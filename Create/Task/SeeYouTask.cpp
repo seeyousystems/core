@@ -51,8 +51,9 @@ void SeeYouTask::process() {
 		status = Task::Finished;
 
 	} else if(move == "Rotate 90") {
+		((SeeYouController*) create->controller)->move(3000, this->speed);
 
-		((SeeYouController*) create->controller)->turn(90, this->speed);
+		//((SeeYouController*) create->controller)->turn(90, this->speed);
 		Debug::print("[SeeYouTask] Rotate 90 Task");
 		status = Task::Finished;
 

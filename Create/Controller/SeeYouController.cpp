@@ -6,7 +6,7 @@
  */
 
 #include "SeeYouController.h"
-
+#include "SensorController.h"
 #include "../COIL/COIL.h"
 #include "../COIL/ArduinoCOIL.h"
 #include "../Library/Debug.h"
@@ -23,6 +23,636 @@ SeeYouController::SeeYouController(Create *create, int speed, int interval) :
 	distanceToMove = 0.0;
 	distanceMoved = 0.0;
 	mode = Idle;
+	tag = 0;
+	tag_buffer = -1;
+	test = 0;
+
+	RFID_DB db;
+
+	vector<RFID_DB> temp(100, db);
+	predefinedDB = temp;
+//
+////	for(unsigned int i = 0; i < predefinedDB.size(); i++) {
+////		db.id = i;
+////		db.x = 0;
+////		db.y = 0;
+////		predefinedDB[i] = db;
+////	}
+//
+db.id = 1;
+db.x = 0;
+db.y = 0;
+predefinedDB[1] = db;
+
+db.id = 2;
+db.x = -122;
+db.y = 0;
+predefinedDB[2] = db;
+
+//db.id = 3;
+//db.x = -244;
+//db.y = 0;
+//predefinedDB[3] = db;
+//
+//db.id = 4;
+//db.x = -366;
+//db.y = 0;
+//predefinedDB[4] = db;
+//
+//db.id = 5;
+//db.x = -488;
+//db.y = 0;
+//predefinedDB[5] = db;
+//
+//db.id = 6;
+//db.x = -600;
+//db.y = 0;
+//predefinedDB[6] = db;
+//
+//db.id = 7;
+//db.x = -722;
+//db.y = 0;
+//predefinedDB[7] = db;
+//
+//db.id = 8;
+//db.x = -844;
+//db.y = 0;
+//predefinedDB[8] = db;
+//
+//db.id = 9;
+//db.x = -966;
+//db.y = 0;
+//predefinedDB[9] = db;
+//
+//db.id = 10;
+//db.x = -1088;
+//db.y = 0;
+//predefinedDB[10] = db;
+//
+//db.id = 11;
+//db.x = -1088;
+//db.y = -122;
+//predefinedDB[11] = db;
+//
+//db.id = 12;
+//db.x = -1088;
+//db.y = -244;
+//predefinedDB[12] = db;
+//
+//db.id = 13;
+//db.x = -1088;
+//db.y = -366;
+//predefinedDB[13] = db;
+//
+//db.id = 14;
+//db.x = -1088;
+//db.y = -488;
+//predefinedDB[14] = db;
+//
+//db.id = 15;
+//db.x = -1088;
+//db.y = -600;
+//predefinedDB[15] = db;
+//
+//db.id = 16;
+//db.x = -1088;
+//db.y = -722;
+//predefinedDB[16] = db;
+//
+//db.id = 17;
+//db.x = -1088;
+//db.y = 122;
+//predefinedDB[17] = db;
+//
+//db.id = 18;
+//db.x = -1088;
+//db.y = 244;
+//predefinedDB[18] = db;
+//
+//db.id = 19;
+//db.x = -1088;
+//db.y = 366;
+//predefinedDB[19] = db;
+//
+//db.id = 20;
+//db.x = -1088;
+//db.y = 488;
+//predefinedDB[20] = db;
+
+//db.id = 21;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[21] = db;
+//
+//db.id = 22;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[22] = db;
+//
+//db.id = 23;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[23] = db;
+//
+//db.id = 24;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[24] = db;
+//
+//db.id = 25;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[25] = db;
+//
+//db.id = 26;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[26] = db;
+//
+//db.id = 27;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[27] = db;
+//
+//db.id = 28;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[28] = db;
+//
+//db.id = 29;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[29] = db;
+//
+//db.id = 30;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[30] = db;
+//
+//db.id = 31;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[31] = db;
+//
+//db.id = 32;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[32] = db;
+//
+//db.id = 33;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[33] = db;
+//
+//db.id = 34;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[34] = db;
+//
+//db.id = 35;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[35] = db;
+//
+//db.id = 36;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[36] = db;
+//
+//db.id = 37;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[37] = db;
+//
+//db.id = 38;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[38] = db;
+//
+//db.id = 39;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[39] = db;
+//
+//db.id = 40;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[40] = db;
+//
+//db.id = 41;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[41] = db;
+//
+//db.id = 42;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[42] = db;
+//
+//db.id = 43;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[43] = db;
+//
+//db.id = 44;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[44] = db;
+//
+//db.id = 45;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[45] = db;
+//
+//db.id = 46;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[46] = db;
+//
+//db.id = 47;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[47] = db;
+//
+//db.id = 48;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[48] = db;
+//
+//db.id = 49;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[49] = db;
+//
+//db.id = 50;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[50] = db;
+//
+//db.id = 51;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[51] = db;
+//
+//db.id = 52;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[52] = db;
+//
+//db.id = 53;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[53] = db;
+//
+//db.id = 54;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[54] = db;
+//
+//db.id = 55;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[55] = db;
+//
+//db.id = 56;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[56] = db;
+//
+//db.id = 57;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[57] = db;
+//
+//db.id = 58;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[58] = db;
+//
+//db.id = 59;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[59] = db;
+//
+//db.id = 60;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[60] = db;
+//
+//db.id = 61;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[61] = db;
+//
+//db.id = 62;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[62] = db;
+//
+//db.id = 63;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[63] = db;
+//
+//db.id = 64;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[64] = db;
+//
+//db.id = 65;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[65] = db;
+//
+//db.id = 66;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[66] = db;
+//
+//db.id = 67;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[67] = db;
+//
+//db.id = 68;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[68] = db;
+//
+//db.id = 69;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[69] = db;
+//
+//db.id = 70;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[70] = db;
+//
+//db.id = 71;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[71] = db;
+//
+//db.id = 72;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[72] = db;
+//
+//db.id = 73;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[73] = db;
+//
+//db.id = 74;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[74] = db;
+//
+//db.id = 75;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[75] = db;
+//
+//db.id = 76;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[76] = db;
+//
+//db.id = 77;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[77] = db;
+//
+//db.id = 78;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[78] = db;
+//
+//db.id = 79;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[79] = db;
+//
+//db.id = 80;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[80] = db;
+//
+//db.id = 81;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[81] = db;
+//
+//db.id = 82;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[82] = db;
+//
+//db.id = 83;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[83] = db;
+//
+//db.id = 84;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[84] = db;
+//
+//db.id = 85;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[85] = db;
+//
+//db.id = 86;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[86] = db;
+//
+//db.id = 87;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[87] = db;
+//
+//db.id = 88;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[88] = db;
+//
+//db.id = 89;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[89] = db;
+//
+//db.id = 90;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[90] = db;
+//
+//db.id = 91;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[91] = db;
+//
+//db.id = 92;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[92] = db;
+//
+//db.id = 93;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[93] = db;
+//
+//db.id = 94;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[94] = db;
+//
+//db.id = 95;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[95] = db;
+//
+//db.id = 96;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[96] = db;
+//
+//db.id = 97;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[97] = db;
+//
+//db.id = 98;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[98] = db;
+//
+//db.id = 99;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[99] = db;
+//
+//db.id = 100;
+//db.x = 0;
+//db.y = 0;
+//predefinedDB[100] = db;
+
+//	predefinedDB[100] = {
+//
+//	{1, 0, 0},
+//	{2, -122, 0},
+//	{3, -244, 0},
+//	{4, -366, 0},
+//	{5, -488, 0},
+//	{6, -600, 0},
+//	{7, -722, 0},
+//	{8, -844, 0},
+//	{9, -966, 0},
+//	{10, -1088, 0},
+//
+//	{11, -1088, -122},
+//	{12, -1088, -244},
+//	{13, -1088, -366},
+//	{14, -1088, -488},
+//	{15, -1088, -600},
+//	{16, -1088, -722},
+//	{17, -1088, 122},
+//	{18, -1088, 244},
+//	{19, 0, 0},
+//
+//	{20, 0, 0},
+//	{21, 0, 0},
+//	{22, 0, 0},
+//	{23, 0, 0},
+//	{24, 0, 0},
+//	{25, 0, 0},
+//	{26, 0, 0},
+//	{27, 0, 0},
+//	{28, 0, 0},
+//	{29, 0, 0},
+//
+//	{30, 0, 0},
+//	{31, 0, 0},
+//	{32, 0, 0},
+//	{33, 0, 0},
+//	{34, 0, 0},
+//	{35, 0, 0},
+//	{36, 0, 0},
+//	{37, 0, 0},
+//	{38, 0, 0},
+//	{39, 0, 0},
+//
+//	{40, 0, 0},
+//	{41, 0, 0},
+//	{42, 0, 0},
+//	{43, 0, 0},
+//	{44, 0, 0},
+//	{45, 0, 0},
+//	{46, 0, 0},
+//	{47, 0, 0},
+//	{48, 0, 0},
+//	{49, 0, 0},
+//
+//	{50, 0, 0},
+//	{51, 0, 0},
+//	{52, 0, 0},
+//	{53, 0, 0},
+//	{54, 0, 0},
+//	{55, 0, 0},
+//	{56, 0, 0},
+//	{57, 0, 0},
+//	{58, 0, 0},
+//	{59, 0, 0},
+//
+//	{60, 0, 0},
+//	{61, 0, 0},
+//	{62, 0, 0},
+//	{63, 0, 0},
+//	{64, 0, 0},
+//	{65, 0, 0},
+//	{66, 0, 0},
+//	{67, 0, 0},
+//	{68, 0, 0},
+//	{69, 0, 0},
+//
+//	{70, 0, 0},
+//	{71, 0, 0},
+//	{72, 0, 0},
+//	{73, 0, 0},
+//	{74, 0, 0},
+//	{75, 0, 0},
+//	{76, 0, 0},
+//	{77, 0, 0},
+//	{78, 0, 0},
+//	{79, 0, 0},
+//
+//	{80, 0, 0},
+//	{81, 0, 0},
+//	{82, 0, 0},
+//	{83, 0, 0},
+//	{84, 0, 0},
+//	{85, 0, 0},
+//	{86, 0, 0},
+//	{87, 0, 0},
+//	{88, 0, 0},
+//	{89, 0, 0},
+//
+//	{90, 0, 0},
+//	{91, 0, 0},
+//	{92, 0, 0},
+//	{93, 0, 0},
+//	{94, 0, 0},
+//	{95, 0, 0},
+//	{96, 0, 0},
+//	{97, 0, 0},
+//	{98, 0, 0},
+//	{99, 0, 0},
+//	{100, 0, 0}
+//
+//	};
+
 
 }
 
@@ -91,27 +721,59 @@ void SeeYouController::run() {
 
 		} else if (mode == SeeYouController::Move) {
 
-			// Move mode!
+			tag = SeeYouController::arduino_getRFID();
 
-			if (create->vffAI->hist.oMega >= 45 && create->vffAI->hist.oMega <= 90.0)
+			for (int i = 0; i < 100; i++)
 			{
-				Debug::print("[SeeYouController] Turn Left");
-				//mode = SeeYouController::EmergencyStop;
+				if (predefinedDB[i].id == tag)
+				{
+					test = 1;
+					break;
+				}
+			}
+
+			if (test == 1 && tag_buffer != tag)
+			{
 				//emergencyStop();
-				Lwheel = -speed;
-				Rwheel = +speed;
-			}
-			else if (create->vffAI->hist.oMega >= 91 && create->vffAI->hist.oMega <= 135.0)
-			{
-				Debug::print("[SeeYouController] Turn Right");
-				Lwheel = +speed;
-				Rwheel = -speed;
-			}
-			else {
-				Debug::print("[SeeYouController] Vernon does not suck: %1", create->vffAI->hist.oMega);
+				Lwheel = 0;
+				Rwheel = 0;
 
+				for(int i = 0; i <= 10000000; i++)
+				{
+				}
+
+				Debug::print("[SensorController] STOP");
+				Debug::print("[SensorController] ID %l",predefinedDB[tag].id);
+				Debug::print("[SensorController] X %l", predefinedDB[tag].x);
+				Debug::print("[SensorController] Y %l", predefinedDB[tag].y);
+				tag_buffer = tag;
+				test = 0;
+			}
+//			else if (create->vffAI->hist.oMega >= 45 && create->vffAI->hist.oMega <= 90.0 && obuffer != create->vffAI->hist.oMega)
+//			{
+//				Debug::print("[SeeYouController] Turn Left: %l", create->vffAI->hist.oMega);
+//				Debug::print("[SeeYouController] o_buffer %l", obuffer);
+//				//mode = SeeYouController::EmergencyStop;
+//				//emergencyStop();
+//				Lwheel = -speed;
+//				Rwheel = +speed;
+//				obuffer = create->vffAI->hist.oMega;
+//			}
+//			else if (create->vffAI->hist.oMega >= 91 && create->vffAI->hist.oMega <= 135.0)
+//			{
+//				Debug::print("[SeeYouController] Turn Right %l", create->vffAI->hist.oMega);
+//				Debug::print("[SeeYouController] o_buffer %l", obuffer);
+//				Lwheel = +speed;
+//				Rwheel = -speed;
+//				obuffer = create->vffAI->hist.oMega;
+//			}
+			else
+			{
+				Debug::print("[SeeYouController] Go Straight: %1", create->vffAI->hist.oMega);
+				//Debug::print("[SeeYouController] obuffer %l", obuffer);
 				Lwheel = speed;
 				Rwheel = speed;
+				//obuffer = create->vffAI->hist.oMega;
 			}
 
 		} else if (mode == SeeYouController::Turn) {
@@ -273,6 +935,10 @@ int SeeYouController::arduino_getLeftIR()
 int SeeYouController::arduino_getRightIR()
 {
 	return (int) create->arduino->readInfraredRight();
+}
+int SeeYouController::arduino_getRFID()
+{
+	return (int) create->arduino->readRFID();
 }
 
 

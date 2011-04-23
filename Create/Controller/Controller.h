@@ -59,6 +59,16 @@ public:
 	int interval;
 	int globaltag;
 
+	 typedef struct
+	{
+		int id;
+		double x;
+		double y;
+	} RFID_DB;
+	//RFID_DB *predefinedDB;
+
+	vector <RFID_DB> predefinedDB;
+
 public:
 	Controller(QString name, Create *create, int interval);
 	virtual ~Controller();
@@ -66,6 +76,7 @@ public:
 	virtual void emergencyStop();
 	virtual void regularStop();
 	virtual void tags(int tagnumber);	//Added by Hanam Apr21st
+	virtual int getTags();
 	void stop();
 	void start(QThread::Priority priority);
 

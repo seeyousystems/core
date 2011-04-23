@@ -161,7 +161,7 @@ void JoystickView::mouseMoveEvent(QMouseEvent *event) {
 		yokeX = ( (double)event->pos().x() - ((double)this->width()/2.0) ) / ((double)this->width()/2.0);
 		yokeY = -( (double)event->pos().y() - ((double)this->height()/2.0) ) / ((double)this->height()/2.0);
 
-		printf("%f, %f\t\t%f, %f\n", (double)event->pos().x(), (double)event->pos().y(), (double)this->width()/2.0, (double)this->height()/2.0);
+		//printf("%f, %f\t\t%f, %f\n", (double)event->pos().x(), (double)event->pos().y(), (double)this->width()/2.0, (double)this->height()/2.0);
 
 		// Fix
 		if(mode == JoystickView::JOYSTICK_MODE_FREE) {

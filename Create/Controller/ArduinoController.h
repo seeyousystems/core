@@ -39,6 +39,12 @@ public:
 		sensor_oi sensorPacket;
 		sensor_oi previousPacket;
 
+		enum { Heading, LeftPinger, RightPinger, FrontIR, LeftIR, RightIR, RFIDTag } sensor;
+
+public:
+	virtual int  getHeading();
+	virtual int getRFID();
+
 public:
 	ArduinoController(QString name, Create *create, int interval);
 	virtual ~ArduinoController();

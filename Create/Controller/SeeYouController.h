@@ -17,15 +17,7 @@ class SeeYouController: public Controller {
 	Q_OBJECT
 
 public:
-    typedef struct
-    {
-    	int id;
-        double x;
-        double y;
-    } RFID_DB;
-    //RFID_DB *predefinedDB;
 
-    vector <RFID_DB> predefinedDB;
     int counter;
     int test;
 	int tag;
@@ -50,6 +42,7 @@ public:
 	virtual void emergencyStop();
 	virtual void regularStop();
 	virtual void tags(int tagnumber);	//Added by Hanam Apr21st
+	virtual int getTags();
 	void turn(int angle, int speed);
 	void move(int distance, int speed);
 	void wheelDrive(short Lwheel, short Rwheel);

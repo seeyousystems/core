@@ -53,6 +53,22 @@ public:
 	NetworkPacket netPacket;
 	NetworkPacket prevNetPacket;
 
+	typedef struct
+	{
+		int x;
+		int y;
+		int rfid_tag;
+		int speed;
+		QString direction;
+		QString bumper;
+		int bitrate;
+		int batteryLife;
+		float voltage;
+		QString message;
+	}ServerPacket;
+
+	ServerPacket serverPacket;
+
 private:
 	RemoteInterfaceListener *listener;
 	RemoteInterfaceSender *sender;

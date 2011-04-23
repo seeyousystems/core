@@ -19,6 +19,7 @@ public:
 	int speed;
 	QString move;
 	int tick;
+	int tagdistance;
 
 public:
 	SeeYouTask(Create *create, QString move, int speed, TaskPriority priority = Task::Normal);

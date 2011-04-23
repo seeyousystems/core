@@ -65,9 +65,15 @@ void Controller::emergencyStop() {
 void Controller::regularStop() {
 	//create->coil->directDrive(0, 0);
 }
+
 void Controller::tags(int tagnumber){//Added by Hanam Apr 21
 	globaltag = tagnumber;
 }
+
+int Controller::getTags() {
+	return globaltag;
+}
+
 void Controller::start(QThread::Priority priority) {
 
 	Debug::print("[Controller] %1 Controller started", name);

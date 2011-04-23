@@ -18,6 +18,7 @@ SeeYouTask::SeeYouTask(Create *create, QString move, int speed, TaskPriority pri
 	this->move = move;
 	this->speed = speed;
 	tick = 0;
+	tagdistance = 0;
 }
 
 SeeYouTask::~SeeYouTask() {
@@ -25,6 +26,23 @@ SeeYouTask::~SeeYouTask() {
 }
 
 void SeeYouTask::process() {
+
+	//int tagdistance;
+
+	//Debug::print("[SeeYouTask] globaltag Vernon sucks: %1\n", create->controller->getTags());
+
+	/*
+	 * Performs a move(int,int) call to the proper RFID tag.
+	 */
+
+	if (create->controller->getTags() != -1 || create->controller->getTags() != 0)
+	{
+		tagdistance = create->controller->predefinedDB[create->controller->getTags()].y;
+	}
+	else
+	{
+		tagdistance = 0;
+	}
 
 	int DISTANCE = 1000; // 100 cm
 
@@ -89,16 +107,18 @@ void SeeYouTask::process() {
 
 /*=====================================
  * For Network Communication overrides
+ *
+ * Each task is executed every second. The current (constant) speed is 100 mm/s which
+ * means that in every task, the robot will travel 10 cm.
+ *
+ *
  =====================================*/
 //TODO: Write Stop Command
 	} else if(move == "NetComm_stop") {
-//
-//		if (create->taskManager->getTask() != NULL)
-//		{
-//			create->interruptTask();
-//		}
-
-		//((SeeYouController*) create->controller)->regularStop();
+		/*
+		 * This command is OPTIONAl
+		 */
+		((SeeYouController*) create->controller)->regularStop();
 
 		Debug::print("[SeeYouTask:NETCOMM] Stop Task");
 		status = Task::Finished;
@@ -114,16 +134,23 @@ void SeeYouTask::process() {
 		status = Task::Finished;
 	} else if(move == "NetComm_forward") {
 
-		((SeeYouController*) create->controller)->move(500, this->speed);
-		Debug::print("[SeeYouTask:NETCOMM] Forward Task");
+		//Uncomment Later
+		((SeeYouController*) create->controller)->move(110, this->speed);
+//		Debug::print("Tagdistance %1", tagdistance);
+//		((SeeYouController*) create->controller)->move(tagdistance, (this->speed));
+//		Debug::print("[SeeYouTask:NETCOMM] Forward Task");
 		status = Task::Finished;
 
 	} else if(move == "NetComm_backward") {
-		((SeeYouController*) create->controller)->move(-50, -(this->speed));
+		((SeeYouController*) create->controller)->move(-110, -(this->speed));
 		Debug::print("[SeeYouTask:NETCOMM] Backward Task");
 		status = Task::Finished;
 	}
-
+	else if(move == "NetComm_tag") {
+			((SeeYouController*) create->controller)->move(tagdistance, (this->speed));
+			Debug::print("[SeeYouTask:NETCOMM] Goto Tag");
+			status = Task::Finished;
+		}
 
 	tick++;
 

@@ -4,9 +4,11 @@
 #include "../Library/Debug.h"
 #include "Task/TaskManager.h"
 #include "Task/SeeYouTask.h"
+#include "../MovementTracker/MovementTracker.h"
 
 #include "create.h"
 #include "Controller/SeeYouController.h"
+#include "Controller/ArduinoController.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -32,18 +34,16 @@ NetworkCommunication::NetworkCommunication(Create *create, int interval) :
     this->localId = -1;
     this->message = "";
 
-    ir_packet.x = 4;
-    ir_packet.y = 5;
-
-    direction_packet.rfid_tag = 30;
-    direction_packet.speed = 400;
-    direction_packet.direction = "\"west\"";
-
-    info_packet.bumper = "\"off\"";
-    info_packet.bitrate = 54;
-    info_packet.batteryLife = 49;
-    info_packet.voltage = 5.999;
-    info_packet.message = "\"some\"";
+    serverPacket.x = 4;
+    serverPacket.y = 5;
+    serverPacket.rfid_tag = 30;
+    serverPacket.speed = 400;
+    serverPacket.direction = "\"west\"";
+    serverPacket.bumper = "\"off\"";
+    serverPacket.bitrate = 54;
+    serverPacket.batteryLife = 49;
+    serverPacket.voltage = 7.8;
+    serverPacket.message = "\"some\"";
 
     netPacket.msgID = 0;
     netPacket.userID = 0;
@@ -70,26 +70,25 @@ void NetworkCommunication::run()
     //qDebug() << system("iwconfig wlan0 | grep Signal | cut -d\"=\" -f3 | cut -d\" \" -f1");
     //qDebug() << system("iwconfig wlan0 | grep Bit | cut -d\"=\" -f2 | cut -d\" \" -f1");
 
-	int taskFlag = 1;
     static int counter = 0;
-      QTcpSocket socket;
-      char buf[512];
-      char buf_in[512];
-      memset(buf, 0, 512);
-      memset(buf_in, 0, 512);
-      quint16 read_ret = 0;
+	QTcpSocket socket;
+	char buf[512];
+	char buf_in[512];
+	memset(buf, 0, 512);
+	memset(buf_in, 0, 512);
+	quint16 read_ret = 0;
 
-      int n = 0;
-      char buffer[1024]={};
-      char *x = NULL;
-      qint64 s;
+	int n = 0;
+	char buffer[1024]={};
+	char *x = NULL;
+	qint64 s;
 
-      socket.connectToHost("130.191.166.4", 58080);
-      if(socket.waitForConnected(5000) == false)
-      {
-          qDebug() << "Failed to connect";
-          stopRequested = true;
-      }
+	socket.connectToHost("130.191.166.4", 58080);
+	if(socket.waitForConnected(5000) == false)
+	{
+		qDebug() << "Failed to connect";
+		stopRequested = true;
+	}
 
 /*===============================================
  * Processing Loops:  The robot will perform these in a loop:
@@ -195,11 +194,17 @@ void NetworkCommunication::run()
 				int delay = netPacket.time.secsTo(prevNetPacket.time);
 				if(netPacket.msgID != prevNetPacket.msgID)
 				{
-					if(delay >= -5)
+					if(delay >= -60)
 					{
 						qDebug() << netPacket.msg;
 						//IF OVERRIDE IS OFF
-						if(netPacket.override == 0){
+//						if (netPacket.RFID != 0)
+//						{
+//							create->controller->tags(netPacket.RFID);
+//							Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
+//						}
+						if(netPacket.override == 0)
+						{
 							/*
 							 * Prevent tag to be overwritten with zero
 							 */
@@ -207,25 +212,35 @@ void NetworkCommunication::run()
 							{
 								create->controller->tags(netPacket.RFID);
 								Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
-								taskFlag = 0;
 							}
 						}
 						//IF OVERRIDE IS ON
-						else if(netPacket.override == 1) {
-							if(netPacket.msg == "left") {
+						else if(netPacket.override == 1)
+						{
+							if(netPacket.msg == "left")
+							{
 								create->addTask(new SeeYouTask(this->create, "NetComm_left", 100));
 							}
-							else if(netPacket.msg == "right") {
+							else if(netPacket.msg == "right")
+							{
 								create->addTask(new SeeYouTask(this->create, "NetComm_right", 100));
 							}
-							else if(netPacket.msg == "forward") {
+							else if(netPacket.msg == "forward")
+							{
+								Debug::print("[NetworkCommunication] GlobalTag for Vernon: %1", create->controller->getTags());
 								create->addTask(new SeeYouTask(this->create, "NetComm_forward", 100));
 							}
-							else if(netPacket.msg == "backward") {
+							else if(netPacket.msg == "backward")
+							{
 								create->addTask(new SeeYouTask(this->create, "NetComm_backward", 100));
 							}
-							else if(netPacket.msg == "stop") {
-								//create->addTask(new SeeYouTask(this->create, "NetComm_stop", 100));
+							else if(netPacket.msg == "tag")
+							{
+								create->addTask(new SeeYouTask(this->create, "NetComm_tag", 100));
+							}
+							else if(netPacket.msg == "stop")
+							{
+								create->addTask(new SeeYouTask(this->create, "NetComm_stop", 100));
 								if (create->taskManager->getTask() != NULL)
 								{
 									create->taskManager->setCurrentTask(Task::Interrupted);
@@ -274,8 +289,41 @@ void NetworkCommunication::run()
          * \"  \"
          *
          */
-       n = sprintf(buffer, "%d-50-%d-400-\"north\"-\"off\"-%d-49-5.999-\"Hanam breaks computers world\"-\n", 29+counter, 250+counter, 54-counter);
-//       n = sprintf(buffer, "%d-%d-%d-%d-%c-%c-%d-%d-%f-%c-\n",4,4,4,2,3,4,4,4,4.0,4 );
+
+        /*
+         * Update all variables that will be sent to the server.
+         */
+
+        serverPacket.x = create->movementTracker->x();
+		serverPacket.y = create->movementTracker->x();
+
+		///Debug::print("[NetworkCommunication] x: %1, y: %2", serverPacket.x, serverPacket.y);
+
+		serverPacket.rfid_tag = create->arduinoController->getRFID();
+		serverPacket.speed = 100;
+
+		QString st;
+		st.setNum(create->arduinoController->getHeading(), 10);
+		serverPacket.direction = "\"" + st + "\"";
+
+		serverPacket.bumper = "\"off\"";
+		serverPacket.bitrate = 54;
+		serverPacket.batteryLife = 49;
+		serverPacket.voltage = 7.8;
+		serverPacket.message = "\"some\"";
+
+//       n = sprintf(buffer, "%d,50,%d,400,\"north\",\"off\",%d,49,5.999,\"Hanam breaks computers world\",\n", 29+counter, 250+counter, counter);
+		n = sprintf(buffer, "%d,%d,%d,%d,%s,%s,%d,%d,%f,%s,\n",
+    		   serverPacket.x,
+    		   serverPacket.y,
+    		   serverPacket.rfid_tag,
+    		   serverPacket.speed,
+    		   serverPacket.direction.toAscii().constData(),
+    		   serverPacket.bumper.toAscii().constData(),
+    		   serverPacket.bitrate,
+    		   serverPacket.batteryLife,
+    		   serverPacket.voltage,
+    		   serverPacket.message.toAscii().constData());
 
        x = new char[n];
        x = buffer;

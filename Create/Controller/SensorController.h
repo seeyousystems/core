@@ -27,6 +27,10 @@ public:
 	SensorController(Create *create, int speed, int interval);
 	virtual ~SensorController();
 	virtual void run();
+
+public:
+//	virtual int  getHeading();
+//	virtual int  getRFID();
 //	virtual sensor_oi getSensorPacket();
 
 private:

@@ -39,3 +39,13 @@ void ArduinoController::start(QThread::Priority priority) {
 
 	QThread::start(priority);
 }
+
+int ArduinoController::getHeading()
+{
+	return sensorPacket.heading;
+}
+
+int ArduinoController::getRFID()
+{
+	return sensorPacket.RFID;
+}

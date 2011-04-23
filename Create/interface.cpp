@@ -47,6 +47,7 @@ Interface::Interface(QWidget *parent)
 	// Setup connections
 	connect(btnConnect, SIGNAL(clicked()), this, SLOT(connectDisconnect()));
 	connect(cbTask, SIGNAL(currentIndexChanged(int)), this, SLOT(currentTask(int)));
+	connect(killSwitchButton, SIGNAL(clicked()), this, SLOT(killSwitchFunction()));
 
 	// Slider connections
 	connect(sliderDistance, SIGNAL(valueChanged(int)), lcdDistance, SLOT(display(int)));
@@ -154,7 +155,7 @@ void Interface::createConnected()
 	// GUI stuff...
 	btnConnect->setText("Disconnect");
 	btnConnect->setIcon(QIcon(":disconnect"));
-	btnAbort->setEnabled(true);
+	//btnAbort->setEnabled();
 	//btnRefreshSensors->setEnabled(true);
 
 	//emit createConnectionChanged(create);
@@ -227,15 +228,28 @@ void Interface::focusOnPoint(long x, long y){
 	//}
 }
 
+void Interface::killSwitchFunction()
+{
+	if (create->taskManager->getTask() != NULL)
+	{
+		create->taskManager->setCurrentTask(Task::Interrupted);
+		Debug::print("[Interface] Interrupted");
+	}
+}
+
 void Interface::currentTask(int index)
 {
-	//Debug::print("[Interface] current index is: %1 name: %2", index, cbTask->itemText(index));
+	Debug::print("[Interface] current index is: %1 name: %2", index, cbTask->itemText(index));
 	QString task = cbTask->itemText(index);
-	if(task == "Avoid Obstacles") {
+	if(task == "Backwards") {
 		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
 	}
 	else if(task == "Rotate 90") {
 		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+	}
+	else if(task == "Rotate -90")
+	{
+			create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
 	}
 	else if(task == "Rotate 360") {
 		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
@@ -254,6 +268,40 @@ void Interface::currentTask(int index)
 	}
 	else if(task == "Wall Follower") {
 		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+	}
+	else if(task == "Straight")
+	{
+		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+	}
+	else if(task == "Stop")
+	{
+		//create->taskManager->stopRequested = true;
+		//Debug::print("[Interface] current status %l", create->taskManager->currentTask->status);
+		//create->taskManager->currentTask->status = Task::Interrupted;
+		if (create->taskManager->getTask() != NULL)
+		{
+			create->taskManager->setCurrentTask(Task::Interrupted);
+		}
+
+
+//		for(int i = 0; i < create->taskManager->tasks->count(); i++) {
+//			create->taskManager->tasks->at(i)->status = Task::Interrupted;
+//		}
+		//create->stopTask();
+		//create->taskManager->currentTask->interrupt();
+		//create->taskManager->currentTask->interruptRequested();
+		//create->coil->directDrive(0, 0);
+		//create->controller->regularStop();
+		//create->taskManager->currentTask = NULL;
+	//	mode = SeeYouController::EmergencyStop;
+//create->controller
+
+		//Debug::print("[Interface] current status %l", create->taskManager->currentTask->status);
+		//create->taskManager->currentTask = task
+
+		//create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value(), Task::Immediate));
+
+
 	}
 }
 
@@ -347,6 +395,12 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 	btnAbort = new QPushButton(QIcon(":cross"), "Abort");
 	btnAbort->setEnabled(false);
 
+	// Kill switch Button
+	killSwitchButton = new QPushButton(tr("Kill Switch"));
+	killSwitchButton->setStyleSheet("* { background-color: rgb(255, 0, 0) }");
+	killSwitchButton->setEnabled(true);
+
+
 	// Port Connections
 	cbPort = new QComboBox();
 	cbPort->addItem("/dev/ttyUSB0");
@@ -369,6 +423,7 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 	vbox->addWidget(btnConnect);
 	vbox->addWidget(btnAbort);
 	vbox->addWidget(cbPort);
+	vbox->addWidget(killSwitchButton);
 	//vbox->addWidget(cbTask);
 	//vbox->addStretch(1);
 	exclusiveBox->setLayout(vbox);
@@ -438,11 +493,14 @@ QGroupBox *Interface::createBlockControllerExclusiveGroup()
 
 	// Task list
 	cbTask = new QComboBox();
-	cbTask->addItem("Avoid Obstacles");
+	cbTask->addItem("Backwards");
 	cbTask->addItem("Rotate 90");
+	cbTask->addItem("Rotate -90");
 	cbTask->addItem("Rotate 360");
 	cbTask->addItem("Straight Path Move");
 	cbTask->addItem("Wall Follower");
+	cbTask->addItem("Straight");
+	cbTask->addItem("Stop");
 	layoutTopLeftBottomMaster->addWidget(new QLabel("Tasks"), 9, 0);
 	layoutTopLeftBottomMaster->addWidget(cbTask, 10, 0);
 

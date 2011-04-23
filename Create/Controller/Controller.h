@@ -57,12 +57,15 @@ public:
 	Create *create;
 	QString name;
 	int interval;
+	int globaltag;
 
 public:
 	Controller(QString name, Create *create, int interval);
 	virtual ~Controller();
 	virtual void run() = 0;
 	virtual void emergencyStop();
+	virtual void regularStop();
+	virtual void tags(int tagnumber);	//Added by Hanam Apr21st
 	void stop();
 	void start(QThread::Priority priority);
 

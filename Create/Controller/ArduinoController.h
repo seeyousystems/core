@@ -26,6 +26,19 @@ public:
 	QString name;
 	int interval;
 
+	typedef struct {
+			int heading;
+			int leftPinger;
+			int rightPinger;
+			int frontIR;
+			int leftIR;
+			int rightIR;
+			int RFID;
+		}sensor_oi;
+
+		sensor_oi sensorPacket;
+		sensor_oi previousPacket;
+
 public:
 	ArduinoController(QString name, Create *create, int interval);
 	virtual ~ArduinoController();

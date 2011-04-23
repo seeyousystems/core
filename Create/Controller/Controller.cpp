@@ -40,7 +40,7 @@ Controller::Controller(QString name, Create *create, int interval) {
 	this->name = name;
 	this->create = create;
 	this->interval = interval;
-
+	globaltag = 0;
 	stopRequested = false;
 }
 
@@ -62,6 +62,12 @@ void Controller::emergencyStop() {
 	create->coil->directDrive(0, 0);
 }
 
+void Controller::regularStop() {
+	//create->coil->directDrive(0, 0);
+}
+void Controller::tags(int tagnumber){//Added by Hanam Apr 21
+	globaltag = tagnumber;
+}
 void Controller::start(QThread::Priority priority) {
 
 	Debug::print("[Controller] %1 Controller started", name);

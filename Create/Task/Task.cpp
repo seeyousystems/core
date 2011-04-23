@@ -30,8 +30,18 @@ Task::Task(QString name, Create *create, int interval, TaskPriority priority) {
 	this->interval = interval;
 	this->status = Task::Waiting;
 	this->priority = priority;
+	interruptOnNextProcess = false;
 }
 
 Task::~Task() {
 
 }
+
+void Task::interrupt() {
+	interruptOnNextProcess = true;
+}
+
+bool Task::interruptRequested() {
+	return interruptOnNextProcess;
+}
+

@@ -59,6 +59,9 @@ public:
 	void stop();
 	void addTask(Task *task);
 	void start(QThread::Priority priority);
+	void setCurrentTask(Task::TaskStatus stat);
+	int getCurrentTask();
+	Task* getTask();
 };
 
 #endif /* TASKMANAGER_H_ */

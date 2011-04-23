@@ -33,6 +33,7 @@ class ArduinoController;
 class Task;
 class TaskManager;
 
+class Network;
 
 class Create : public QObject
 {
@@ -66,6 +67,7 @@ public:
 	COIL *coil;
 	ArduinoCOIL *arduino;
 	VFF *vffAI;
+	Network *network;
 
 //	GridMap *gridMap;
 //	HeatMap *heatMap;
@@ -97,6 +99,8 @@ public:
 	inline long mmToPixels(long mm);
 	inline long pixelsTomm(long pixels);
 	void addTask(Task *task);
+	int stopTask();
+	void interruptTask();
 	void initMapsAndObjects();
 
 	// Global Settings
@@ -110,6 +114,7 @@ public:
 
 private:
 	static int arduino_active;			//TODO: fail safe debug mode status
+	static int network_active;			//TODO: fail safe debug mode status
 	//void initCreate(QSettings *settings);
 
 public slots:

@@ -17,6 +17,8 @@
 #include "Controller/SensorController.h"
 #include "Controller/BlockDriveController.h"
 
+#include "Network/networkcommunication.h"
+
 #include "Task/Task.h"
 #include "Task/TaskManager.h"
 
@@ -27,7 +29,7 @@
 
 // TODO: If Arduino is not connected, set this variable to 0
 int Create::arduino_active = 1;
-
+int Create::network_active = 1;
 Create::Create()
 {
 	// NULL everything for safety of deletion
@@ -43,6 +45,8 @@ Create::Create()
 	settings = NULL;
 
 	vffAI = NULL;
+
+	network = NULL;
 
 	// Load settings and default values if needed
 	settings = new QSettings(QString("Resources/emssCore.config"), QSettings::IniFormat);
@@ -80,6 +84,8 @@ Create::~Create()
 	if(settings) delete settings;
 
 	if(vffAI) delete vffAI;
+
+	if(network) delete network;
 }
 
 bool Create::connect(QString strSerialPort, bool safeMode)
@@ -170,6 +176,11 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 		assert(arduinoController);
 	}
 
+	// Network
+	if(network) { delete network; network = NULL; }
+	network = new NetworkCommunication(this, 200);
+	assert(network);
+
 //	if(controller) { delete controller; controller = NULL; }
 //	controller = new FluidDriveController(this, intSetting("FLUIDDRIVECONTROLLER_SPEED"), intSetting("FLUIDDRIVECONTROLLER_INTERVAL"));
 //	assert(controller);
@@ -196,6 +207,9 @@ void Create::run() {
 		if(arduinoController) arduinoController->start(QThread::NormalPriority);
 	}
 	if(taskManager) taskManager->start(QThread::NormalPriority);
+	if(network_active == 1)	{
+		if(network) network->start(QThread::NormalPriority);
+	}
 	Debug::print("[Core] Running...");
 }
 
@@ -206,6 +220,9 @@ void Create::stop() {
 	if(controller) controller->stop();
 	if(arduino_active == 1) {
 		if(arduinoController) arduinoController->stop();
+	}
+	if(network_active == 1) {
+		if(network) network->stop();
 	}
 	Debug::print("[Core] Stopped");
 }
@@ -289,6 +306,25 @@ inline long Create::pixelsTomm(long pixels) {
 
 void Create::addTask(Task *task) {
 	taskManager->addTask(task);
+}
+
+int Create::stopTask() {
+	//taskManager->tasks->currentTask->
+	//return ();
+	if (taskManager->getCurrentTask() == Task::Interrupted)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+
+}
+
+void Create::interruptTask()
+{
+	taskManager->setCurrentTask(Task::Interrupted);
 }
 
 void Create::initMapsAndObjects(){

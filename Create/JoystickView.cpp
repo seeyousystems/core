@@ -26,6 +26,7 @@
 
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <stdio.h>
 
 JoystickView::JoystickView(JoystickView::JoystickMode mode, QWidget *parent) : QWidget(parent) {
 
@@ -159,6 +160,8 @@ void JoystickView::mouseMoveEvent(QMouseEvent *event) {
 		// Solve for positionX: (this->width()/2) + (positionX*(this->width()/2)) = pos().x()
 		yokeX = ( (double)event->pos().x() - ((double)this->width()/2.0) ) / ((double)this->width()/2.0);
 		yokeY = -( (double)event->pos().y() - ((double)this->height()/2.0) ) / ((double)this->height()/2.0);
+
+		printf("%f, %f\t\t%f, %f\n", (double)event->pos().x(), (double)event->pos().y(), (double)this->width()/2.0, (double)this->height()/2.0);
 
 		// Fix
 		if(mode == JoystickView::JOYSTICK_MODE_FREE) {

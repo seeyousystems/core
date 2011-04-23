@@ -43,7 +43,8 @@
 class Task : public QObject
 {
 	Q_OBJECT
-
+protected:
+	bool interruptOnNextProcess;
 public:
 	enum TaskStatus { Waiting, Running, Finished, Interrupted } status;
 	enum TaskPriority { Normal, Immediate } priority;
@@ -56,6 +57,8 @@ public:
 	virtual ~Task();
 	virtual void process() = 0;
 	virtual QString description() = 0;
+	void interrupt();
+	bool interruptRequested();
 };
 
 #endif /*TASK_H_*/

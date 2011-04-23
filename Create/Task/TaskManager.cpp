@@ -50,7 +50,15 @@ void TaskManager::run() {
 		if (currentTask != NULL && currentTask->status == Task::Running) {
 
 			// Process the task
-			currentTask->process();
+			if(!currentTask->interruptRequested()) {
+
+				currentTask->process();
+
+			} else {
+
+				currentTask->status = Task::Interrupted;
+
+			}
 
 			// Did we finish?
 			if (currentTask->status == Task::Finished) {
@@ -59,7 +67,16 @@ void TaskManager::run() {
 				Debug::print("[TaskManager] %1 Task finished", currentTask->name);
 				//currentTask = tasks->getNextTask();
 
-			} else {
+			}
+			else if (currentTask->status == Task::Interrupted) {
+
+//							currentTask->postProcess();
+//							emit taskListChanged();
+//							sendTaskStatusChangeNotification(false, currentTask);
+							Debug::warning("[TaskManager] %1 interrupted", currentTask->name);
+
+			}
+			else {
 
 				// Sleep our task interval...
 				this->msleep(currentTask->interval);
@@ -101,3 +118,19 @@ void TaskManager::start(QThread::Priority priority) {
 
 	QThread::start(priority);
 }
+
+void TaskManager::setCurrentTask(Task::TaskStatus stat)
+{
+	currentTask->status = stat;
+}
+
+int TaskManager::getCurrentTask()
+{
+	return (currentTask->status);
+}
+
+Task* TaskManager::getTask()
+{
+	return (currentTask);
+}
+

@@ -43,6 +43,9 @@ private:
 	QPushButton *forwardButton;
 	QPushButton *stopButton;
 
+	// Kill task button
+	QPushButton *killSwitchButton;
+
 	// Port
 	QComboBox *cbPort;
 	QComboBox *cbTask;
@@ -109,6 +112,8 @@ public slots:
 	//void menuAction(QAction *action);
 	//void viewportAction(Viewport *viewport, QString value, long x, long y);
 	void focusOnPoint(long x, long y);
+
+	void killSwitchFunction();
 
 };
 

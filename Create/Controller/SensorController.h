@@ -9,6 +9,7 @@
 #define SENSORCONTROLLER_H_
 
 #include "ArduinoController.h"
+#include <QMutex>
 //#include "../Library/Algorithm/VFF.h"
 
 class SensorController : public ArduinoController {
@@ -17,20 +18,16 @@ class SensorController : public ArduinoController {
 
 private:
 	//VFF vffAI;
+	QMutex mutex;
+
 public:
 	short speed;
-	int heading;
-	int leftPinger;
-	int rightPinger;
-	int frontIR;
-	int leftIR;
-	int rightIR;
-	int RFID;
 
 public:
 	SensorController(Create *create, int speed, int interval);
 	virtual ~SensorController();
 	virtual void run();
+//	virtual sensor_oi getSensorPacket();
 
 private:
 	virtual int arduino_getHeading();

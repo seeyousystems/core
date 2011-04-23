@@ -39,9 +39,10 @@ class TaskList : QObject {
 
 public:
 	QList<Task*> *list;
+	int currentTask;
 
 private:
-	int currentTask;
+	//int currentTask;
 
 public:
 	TaskList();

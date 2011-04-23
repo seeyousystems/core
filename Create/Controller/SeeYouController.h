@@ -26,9 +26,10 @@ public:
     //RFID_DB *predefinedDB;
 
     vector <RFID_DB> predefinedDB;
-
+    int counter;
     int test;
 	int tag;
+	int globaltag;
 	int tag_buffer;
 	double obuffer;
 	short speed	;
@@ -47,6 +48,8 @@ public:
 	virtual ~SeeYouController();
 	virtual void run();
 	virtual void emergencyStop();
+	virtual void regularStop();
+	virtual void tags(int tagnumber);	//Added by Hanam Apr21st
 	void turn(int angle, int speed);
 	void move(int distance, int speed);
 	void wheelDrive(short Lwheel, short Rwheel);

@@ -4,7 +4,10 @@ QT += core \
     gui \
     xml \
     network
-HEADERS += Library/Algorithm/VFF.h \
+HEADERS += Network/Network.h \
+    Network/RemoteInterfaceMessage.h \
+    Network/networkcommunication.h \
+    Library/Algorithm/VFF.h \
     Library/Algorithm/Grid.h \
     Library/VFF.h \
     Task/StraightPathMoveTask.h \
@@ -40,7 +43,10 @@ HEADERS += Library/Algorithm/VFF.h \
     Library/SleeperThread.h \
     Library/Util.h \
     create.h
-SOURCES += Library/Algorithm/VFF.cpp \
+SOURCES += Network/Network.cpp \
+    Network/RemoteInterfaceMessage.cpp \
+    Network/networkcommunication.cpp \
+    Library/Algorithm/VFF.cpp \
     Library/Algorithm/Grid.cpp \
     Task/StraightPathMoveTask.cpp \
     Task/MoveTask.cpp \

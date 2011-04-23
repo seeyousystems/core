@@ -189,13 +189,6 @@ void NetworkCommunication::run()
 					 * TODO: Prioritize the override commands with the autonomous controls.
 					===================================================*/
 
-
-				//tODO: memory leak
-				//TODO: memory leak
-				//TODO: memory leak
-
-
-
 				/*
 				 * Compare the time between the messages to ignore delayed packets
 				 */
@@ -297,22 +290,6 @@ void NetworkCommunication::run()
        s = 0;
        counter++;
 
-
-
-
-
-//        qDebug() << "BitRate";
-//        //system("iwconfig wlan0 | grep Signal | cut -d\"=\" -f3 | cut -d\" \" -f1");
-//        system("iwconfig wlan0 | grep Bit | cut -d\"=\" -f2 | cut -d\" \" -f1");
-
-//        qDebug() << "Signal Level: ";
-//        system("iwconfig wlan0 | grep Signal | cut -d\"=\" -f3 | cut -d\" \" -f1");
-
-       // int
-        //std::cout << "Signal Level: " << system("iwconfig wlan0 | grep Signal | cut -d\"=\" -f3 | cut -d\" \" -f1") << "Mbs";
-        //qDebug() << system("iwconfig wlan0 | grep Signal | cut -d\"=\" -f3 | cut -d\" \" -f1");
-       // qDebug() << "Bit Rate: " << system("iwconfig wlan0 | grep Bit | cut -d\"=\" -f2 | cut -d\" \" -f1") <<  "Mbs";
-
-        this->msleep(interval);
+       this->msleep(interval);
     }
 }

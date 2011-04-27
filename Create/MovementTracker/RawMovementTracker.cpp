@@ -3,7 +3,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -26,8 +26,9 @@
 
 #include "../Library/Debug.h"
 
-RawMovementTracker::RawMovementTracker(Create *create, long x, long y, double rotation) : MovementTracker("Raw", create) {
-	this->transformation = Trafo2D::trans(x,y) * Trafo2D::rot(Rad(rotation)); // Core/COIL has a clockwise positive rotation while the math library has a anti-clockwise rotation...
+RawMovementTracker::RawMovementTracker(Create *create, long x, long y, double rotation) : MovementTracker("RawMovementTracker", create) {
+	transformation = Trafo2D::trans(x,y) * Trafo2D::rot(Rad(rotation)); // Core/COIL has a clockwise positive rotation while the math library has a anti-clockwise rotation...
+	weight = 1;
 }
 
 RawMovementTracker::~RawMovementTracker() {
@@ -35,30 +36,46 @@ RawMovementTracker::~RawMovementTracker() {
 }
 
 void RawMovementTracker::registerMovedDistance(double dist){
+
 	if(dist != 0) {
-		relativeDistance += dist;
-		totalDistance += std::abs(dist);
-		transformation = transformation * Trafo2D::trans(0, dist); // Move forwards (up/y) in our transformation matrix
-		emit moved(this->x(), this->y(), this->rotation());
+
+		lock.lockForWrite(); {
+
+			relativeDistance += dist;
+			totalDistance += std::abs(dist);
+			transformation = transformation * Trafo2D::trans(0, dist); // Move forwards (up/y) in our transformation matrix
+
+			emit moved(transformation.trans().x(),transformation.trans().y(),Deg(transformation.angle()));
+
+		} lock.unlock();
 	}
+
+
+
 }
 
 void RawMovementTracker::registerChangedAngle(double angle){
+
 	if(angle != 0) {
-		transformation = transformation * Trafo2D::rot(Rad(angle)); // Core/COIL has a clockwise positive rotation while the math library has a anti-clockwise rotation...
-		emit moved(this->x(), this->y(), this->rotation());
+
+		lock.lockForWrite(); {
+
+			relativeAngle += angle;
+			totalAngle += std::abs(angle);
+			transformation = transformation * Trafo2D::rot(Rad(angle));
+			emit moved(transformation.trans().x(),transformation.trans().y(),Deg(transformation.angle()));
+
+		} lock.unlock();
+
 	}
-}
 
 
-void RawMovementTracker::registerCollision() {
-	Trafo2D collisionLocation = transformation * Trafo2D::trans(0, create->intSetting("ROBOT_BUMPER_COLLISION_OFFSET_MM"));
-	emit collision((long)collisionLocation.trans().x(), (long)collisionLocation.trans().y());
+
 }
 
-void RawMovementTracker::registerObjectDetected(double distance, double angle) {
-	Trafo2D objectLocation = transformation * Trafo2D::rot(Rad(angle)) * Trafo2D::trans(0, distance); // Core/COIL has a clockwise positive rotation while the math library has a anti-clockwise rotation...
-	emit collision((long)objectLocation.trans().x(), (long)objectLocation.trans().y());
+void RawMovementTracker::registerChangedWheelSpeed(int left, int right){
+	// No implementation needed
 }
+
 
 

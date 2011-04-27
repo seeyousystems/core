@@ -3,7 +3,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -24,60 +24,80 @@
 
 #include "Controller.h"
 
-#include "../COIL/COIL.h"
-
 #include "../Library/SleeperThread.h"
 #include "../Library/Debug.h"
 
-/**
- * Constructs a new Controller.
- *
- * \param name		The name of the controller, used for debugging purposes as well as runtime refletion.
- *
- *
- */
-Controller::Controller(QString name, Create *create, int interval) {
-	this->name = name;
-	this->create = create;
+//#include "../Watchdog/Watchdog.h"
+//#include "../Watchdog/ThreadMonitorWatchdogAction.h"
+
+
+Controller::Controller(QString name, Create *create, int interval) : CoreThread(name, create) {
 	this->interval = interval;
-	globaltag = 0;
+	this->targetSpeed = 0;
+	this->sensorData = (int*)malloc (36*sizeof(int));
+	this->watchdogAction = NULL;
+
 	stopRequested = false;
+
+	// Watchdog this?
+//	if(create->watchdog && create->boolSetting("Controller_Watchdog_Enabled")) {
+//		watchdogAction = new ThreadMonitorWatchdogAction(QString("%1 Controller").arg(name), interval, create->doubleSetting("Controller_Watchdog_Flexibility"), create);
+//		create->watchdog->addAction(watchdogAction);
+//	}
 }
 
 Controller::~Controller() {
+//	if(watchdogAction && create->watchdog) create->watchdog->removeAction(watchdogAction);
+//	if(watchdogAction) delete watchdogAction;
+	free(sensorData);
+}
 
+void Controller::run() {
+
+	// Enter processing loop
+	stopRequested = false;
+	while (stopRequested == false) {
+
+		// Lock up for reading...
+		lock.lockForRead(); {
+
+			// Call the virtual process method. This must be implemented by a subclass...
+			process();
+
+		} lock.unlock(); // Unlock read...
+
+		// Ping our watchdog action and sleep our interval...
+//		if(watchdogAction) watchdogAction->ping();
+		this->msleep(interval);
+
+	}
 }
 
 void Controller::stop() {
 
-	// Request a stop and wait for the controller to exit its process loop
+	// Request a stop and wait for the controller to exit its process loop.
+	// After let the watchdog know we are no longer active...
 	stopRequested = true;
-	while(this->isRunning() == true) SleeperThread::msleep(create->intSetting("CONTROLLER_STOP_REQUEST_INTERVAL"));
+	while(this->isRunning() == true) SleeperThread::msleep(create->intSetting("Controller_StopRequestInterval"));
+//	if(watchdogAction) watchdogAction->setActive(false);
 
-	Debug::print("[Controller] %1 Controller stopped", name);
+	Debug::print("[Controller] %1 stopped", name);
 
 }
 
-void Controller::emergencyStop() {
-	create->coil->directDrive(0, 0);
-}
-
-void Controller::regularStop() {
-	//create->coil->directDrive(0, 0);
-}
-
-void Controller::tags(int tagnumber){//Added by Hanam Apr 21
-	globaltag = tagnumber;
-}
-
-int Controller::getTags() {
-	return globaltag;
-}
 
 void Controller::start(QThread::Priority priority) {
 
-	Debug::print("[Controller] %1 Controller started", name);
+	Debug::print("[Controller] %1 started", name);
 
+//	if(watchdogAction) watchdogAction->setActive(true);
 	QThread::start(priority);
 }
+
+void  Controller::setTargetSpeed(int speed) {
+	lock.lockForWrite(); {
+		targetSpeed = speed;
+	} lock.unlock();
+}
+
 

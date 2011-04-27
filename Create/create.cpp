@@ -1,4 +1,5 @@
 #include "create.h"
+#include "CoreFactory.h"
 
 #include "COIL/COIL.h"
 #include "COIL/ArduinoCOIL.h"
@@ -8,8 +9,14 @@
 #include "Library/SleeperThread.h"
 #include "Library/Algorithm/VFF.h"
 
+#include "Library/Joystick2D.h"
+#include "Library/HeapLogger.h"
 
+#include "MovementTracker/Tracker.h"
+#include "MovementTracker/AveragedTracker.h"
+#include "MovementTracker/SingleTracker.h"
 #include "MovementTracker/RawMovementTracker.h"
+#include "MovementTracker/ExpectedMovementTracker.h"
 
 #include "Controller/EmssController.h"
 #include "Controller/FluidDriveController.h"
@@ -19,7 +26,11 @@
 
 #include "Network/networkcommunication.h"
 
+#include "Navigation/SystemOfWeightsNavigation.h"
+
 #include "Task/Task.h"
+#include "Task/JoystickNavigationTask.h"
+
 #include "Task/TaskManager.h"
 
 #include <iostream>
@@ -29,16 +40,18 @@
 
 // TODO: If Arduino is not connected, set this variable to 0
 int Create::arduino_active = 1;
-int Create::network_active = 1;
+int Create::network_active = 0;
 Create::Create()
 {
 	// NULL everything for safety of deletion
 	coil = NULL;
 	arduino = NULL;
 
-	movementTracker = NULL;
+	tracker = NULL;
 	controller = NULL;
 	arduinoController = NULL;
+
+	navigation = NULL;
 
 	taskManager = NULL;
 
@@ -47,6 +60,8 @@ Create::Create()
 	vffAI = NULL;
 
 	network = NULL;
+
+	joystick = new Joystick2D();
 
 	// Load settings and default values if needed
 	settings = new QSettings(QString("Resources/emssCore.config"), QSettings::IniFormat);
@@ -77,7 +92,9 @@ Create::~Create()
 
 	if(arduinoController) delete arduinoController;
 
-	if(movementTracker) delete movementTracker;
+	if(navigation) delete navigation;
+
+	if(tracker) delete tracker;
 
 	if(taskManager) delete taskManager;
 
@@ -86,11 +103,19 @@ Create::~Create()
 	if(vffAI) delete vffAI;
 
 	if(network) delete network;
+
+	if (joystick) delete joystick;
 }
 
 bool Create::connect(QString strSerialPort, bool safeMode)
 {
 	Debug::error("[Create] opening port");
+
+	// Variables
+	connectionSerialPort = strSerialPort;
+	QString strController = "EmssController";
+	QString strNavigation = "SystemOfWeightsNavigation";
+	QString strTracker = "SelfCorrectingTracker";
 
 	// Init Virtual Force Field VFF
 	if(vffAI) { delete vffAI; vffAI = NULL; }
@@ -99,7 +124,8 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 
 	// Init Communication with iRobot
 	if(coil) { delete coil; coil = NULL; }
-	coil = new COIL(strSerialPort); // no Core
+	///coil = new COIL(strSerialPort); // no Core
+	coil = CoreFactory::createCOIL(this, "COIL");
 	assert(coil);
 
 	// Start OI
@@ -136,6 +162,37 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	// Reset LED's
 	coil->setLEDState(COIL::LED_ADVANCE | COIL::LED_PLAY, 0, 255);
 
+	// Init tracker module
+	if(tracker) { delete tracker; tracker = NULL; }
+	tracker = CoreFactory::createTracker(this, strTracker);
+	assert(tracker);
+
+	// Init movement movementTrackers based on a semicolon seperated list from settings...
+	if(stringSetting("Tracker_DefaultMovementTrackers") != "") {
+		foreach(QString trackerToAdd, stringSetting("Tracker_DefaultMovementTrackers").split(" ")) {
+			MovementTracker *newTracker = CoreFactory::createMovementTracker(this, trackerToAdd);
+			assert(newTracker);
+			tracker->addMovementTracker(newTracker);
+		}
+	}
+
+	// Do we need to set a selected Movement Tracker for the Single Tracker?
+	if(tracker->name == "SingleTracker" || tracker->name == "SelfCorrectingTracker") {
+		((SingleTracker*)tracker)->setSelectedMovementTracker(stringSetting("Tracker_SingleTracker_SelectedMovementTracker"));
+	}
+
+
+	//	// Init movement tracker
+	//	/*if(strMovementTracker == "Raw Movement Tracker")*/ {
+	//		movementTracker = new RawMovementTracker(this, robotStartingPositionX, robotStartingPositionY, 0);
+	//	}
+
+		// Init controller
+	//	if(controller) { delete controller; controller = NULL; }
+	//	controller = new SeeYouController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
+	//	//controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
+	//	assert(controller);
+
 	// Init Communication with Arduino
 	if(arduino_active) {
 		if(arduino) { delete arduino; arduino = NULL; }
@@ -159,15 +216,20 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	}
 
 	// Init movement tracker
-	/*if(strMovementTracker == "Raw Movement Tracker")*/ {
-		movementTracker = new RawMovementTracker(this, robotStartingPositionX, robotStartingPositionY, 0);
-	}
+//	/*if(strMovementTracker == "Raw Movement Tracker")*/ {
+//		movementTracker = new RawMovementTracker(this, robotStartingPositionX, robotStartingPositionY, 0);
+//	}
 
 	// Init controller
 	if(controller) { delete controller; controller = NULL; }
-	controller = new SeeYouController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
-	//controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
+	controller = CoreFactory::createController(this, strController);
 	assert(controller);
+
+//	// Init controller
+//	if(controller) { delete controller; controller = NULL; }
+//	controller = new SeeYouController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
+//	//controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
+//	assert(controller);
 
 	// Init Arduino controller
 	if(arduino_active == 1) {
@@ -181,25 +243,29 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	network = new NetworkCommunication(this, 200);
 	assert(network);
 
-//	if(controller) { delete controller; controller = NULL; }
-//	controller = new FluidDriveController(this, intSetting("FLUIDDRIVECONTROLLER_SPEED"), intSetting("FLUIDDRIVECONTROLLER_INTERVAL"));
-//	assert(controller);
-
+	// Create new navigation set
+	if(navigation) { delete navigation; navigation = NULL; }
+	navigation = CoreFactory::createNavigation(this, strNavigation);
+	assert(navigation);
 
 	// Init the task manager
-	taskManager = new TaskManager(this);
+	//taskManager = new TaskManager(this);
+	// Init the task manager
+	if(taskManager) { delete taskManager; taskManager = NULL; }
+	taskManager = CoreFactory::createTaskManager(this);
+	assert(taskManager);
+
 	// Register misc. stuff with objects
-	movementTracker->connectController(controller);
-	//movementTracker->connectMaps(this);
+	tracker->connectController(controller);
 
 	// Success!
 	connected = true;
-	//emit createConnected();
+	emit createConnected();
 	Debug::print("[Create] connected");
 	return true;
 }
 
-void Create::run() {
+void Create::start() {
 
 	// Kickoff the controller and navigator :)
 	if(controller) controller->start(QThread::NormalPriority);
@@ -244,7 +310,7 @@ void Create::abort() {
 
 	// Restart services
 	Debug::print("[Core] Aborted, restarting services...");
-	this->run();
+	this->start();
 }
 
 bool Create::disconnect() {
@@ -269,6 +335,7 @@ bool Create::disconnect() {
 	// Return success
 	Debug::print("[Core] Disconnected");
 	connected = false;
+	emit createConnected();
 	return true;
 }
 
@@ -311,20 +378,20 @@ void Create::addTask(Task *task) {
 int Create::stopTask() {
 	//taskManager->tasks->currentTask->
 	//return ();
-	if (taskManager->getCurrentTask() == Task::Interrupted)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+//	if (taskManager->getCurrentTask() == Task::Interrupted)
+//	{
+//		return 1;
+//	}
+//	else
+//	{
+//		return 0;
+//	}
 
 }
 
 void Create::interruptTask()
 {
-	taskManager->setCurrentTask(Task::Interrupted);
+//	taskManager->setCurrentTask(Task::Interrupted);
 }
 
 void Create::initMapsAndObjects(){
@@ -345,7 +412,7 @@ void Create::reset(){
 		disconnect();
 		//initMapsAndObjects();
 		//connect(connectionController, connectionMovementTracker, connectionSerialPort, connectionForceConnect);
-		run();
+		start();
 	} else {
 		//initMapsAndObjects();
 	}

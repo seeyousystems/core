@@ -34,15 +34,15 @@ void SeeYouTask::process() {
 	/*
 	 * Performs a move(int,int) call to the proper RFID tag.
 	 */
-
-	if (create->controller->getTags() != -1 || create->controller->getTags() != 0)
-	{
-		tagdistance = create->controller->predefinedDB[create->controller->getTags()].y;
-	}
-	else
-	{
-		tagdistance = 0;
-	}
+	// todo: abraham fix this
+//	if (create->controller->getTags() != -1 || create->controller->getTags() != 0)
+//	{
+//		tagdistance = create->controller->predefinedDB[create->controller->getTags()].y;
+//	}
+//	else
+//	{
+//		tagdistance = 0;
+//	}
 
 	int DISTANCE = 1000; // 100 cm
 

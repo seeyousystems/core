@@ -3,7 +3,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -26,38 +26,105 @@
 
 #include "../Library/Debug.h"
 
+//#include "../Map/ColorMap.h"
+//#include "../Map/HeatMap.h"
 
-MovementTracker::MovementTracker(QString name, Create *create) {
-	this->name = name; this->create = create;
+
+MovementTracker::MovementTracker(QString name, Create *create) : CoreObject(name, create){
+	wheelOffset = create->doubleSetting("Robot_WheelOffset_mm");
+	totalDistance = 0;
+	relativeDistance = 0;
+	totalAngle = 0;
+	relativeAngle = 0;
 }
 
 MovementTracker::~MovementTracker() {
 
 }
 
-void MovementTracker::connectController(QObject *target) {
-	connect(target, SIGNAL(signalMovedDistance(double)), this, SLOT(registerMovedDistance(double)));
-	connect(target, SIGNAL(signalChangedAngle(double)), this, SLOT(registerChangedAngle(double)));
-	connect(target, SIGNAL(signalCollision()), this, SLOT(registerCollision()));
-	connect(target, SIGNAL(signalObjectDetected(double,double)), this, SLOT(registerObjectDetected(double,double)));
-	Debug::print("[MovementTracker] %1 Movement Tracker connected to controller", name);
-}
-
-void MovementTracker::connectMaps(QObject *target) {
-	connect(this, SIGNAL(moved(long,long,double)), target, SLOT(robotMoved(long,long,double)));
-	connect(this, SIGNAL(collision(long,long)), target, SLOT(robotCollided(long,long)));
-	connect(this, SIGNAL(objectDetected(long,long)), target, SLOT(objectDetected(long,long)));
-	Debug::print("[MovementTracker] %1 Movement Tracker connected to maps", name);
-}
-
 long MovementTracker::x() {
-	return (long)transformation.trans().x();
+	return getTransformation().trans().x();
 }
 
 long MovementTracker::y() {
-	return (long)transformation.trans().y();
+	return getTransformation().trans().y();
+}
+
+Vector2D MovementTracker::translation() {
+	return getTransformation().trans();
 }
 
 double MovementTracker::rotation() {
-	return Deg(transformation.angle());
+	return Deg(getTransformation().angle());
 }
+
+void MovementTracker::setTransformation(Trafo2D t){
+	lock.lockForWrite();
+	{
+		transformation = t;
+		emit moved(transformation.trans().x(),transformation.trans().y(),Deg(transformation.angle()));
+	}
+	lock.unlock();
+}
+
+Trafo2D MovementTracker::getTransformation(){
+	Trafo2D retVal;
+	lock.lockForRead();
+	{
+		retVal = transformation;
+	}
+	lock.unlock();
+	return retVal;
+}
+
+long MovementTracker::getTotalDistance(){
+	long retVal;
+	lock.lockForRead();
+	{
+		retVal = totalDistance;
+	}
+	lock.unlock();
+	return retVal;
+}
+
+double MovementTracker::getTotalAngle(){
+	double retVal;
+	lock.lockForRead();
+	{
+		retVal = totalAngle;
+	}
+	lock.unlock();
+	return retVal;
+}
+
+long MovementTracker::getRelativeDistance(){
+	long retVal;
+	lock.lockForRead();
+	{
+		retVal = relativeDistance;
+	}
+	lock.unlock();
+	return retVal;
+}
+
+double MovementTracker::getRelativeAngle(){
+	double retVal;
+	lock.lockForRead();
+	{
+		retVal = relativeAngle;
+	}
+	lock.unlock();
+	return retVal;
+}
+
+int MovementTracker::getWeight(){
+	int retVal;
+	lock.lockForRead();
+	{
+		retVal = weight;
+	}
+	lock.unlock();
+	return retVal;
+}
+
+

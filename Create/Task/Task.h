@@ -13,7 +13,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -35,30 +35,40 @@
 #ifndef TASK_H_
 #define TASK_H_
 
-#include <QObject>
 #include <QString>
 
-#include "../create.h"
+#include "../CoreObject.h"
 
-class Task : public QObject
+// Defines the available tasks to Core, which can be created by the factory etc...
+// Each task must be seperated by "|". Classes, such as CoreFactory can use
+// this list to automatically generate appropriate GUI's for creating such tasks.
+#define AVAILABLE_TASKS "TestMoveTask|WallFollowerTask|RoamingTask|DiscoveryTask|Discovery2Task|NavigationTask|FingerprintNavigationTask|AccuracyTestTask|DockAndChargeTask|UndockTask|ChangeModeTask|PauseTask|ScriptedTask"
+
+class Task : public CoreObject
 {
 	Q_OBJECT
+
 protected:
 	bool interruptOnNextProcess;
+	int interval;
+
 public:
 	enum TaskStatus { Waiting, Running, Finished, Interrupted } status;
 	enum TaskPriority { Normal, Immediate } priority;
-	int interval;
-	QString name;
-	Create* create;
 
 public:
 	Task(QString name, Create *create, int interval, TaskPriority priority = Task::Normal);
 	virtual ~Task();
+	virtual void preProcess();
 	virtual void process() = 0;
-	virtual QString description() = 0;
+	virtual void postProcess();
 	void interrupt();
 	bool interruptRequested();
+	virtual QString description() = 0;
+	int getInterval();
+	QString getName();
+	QString getStatusAsString();
+
 };
 
 #endif /*TASK_H_*/

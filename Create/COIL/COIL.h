@@ -1,18 +1,17 @@
 /*
  *  COIL.h
  *
- *  COIL - Create Open Interface Library. Provides an abstraction layer for the
- *  iRobot Create Open Interface, based largely upon the work of Jesse DeGuire and Nathan Sprague.
- *  The original COIL has been ported to C++ and Qt using QExtSerialPort ports,
- *  thus this class cross-compiles on Windows/OSX/Linux :).
- *
- *  COIL includes functions for opening a serial port, sending navigational
- *  commands to the iRobot Create, and reading sensors.
+ *  The C Open Interface Library , or COIL, was originally implemented by
+ *  Jesse DeGuire and Nathan Sprague as a POSIX compliant C wrapper for the
+ *  iRobot Open Interface. We have created a C++ version of COIL which compiles
+ *  on Windows, Linux, and OS X.  The Core module COIL represents the Hardware
+ *  Abstraction Layer, or HAL, in our software stack, and is solely responsible
+ *  for communicating directly with the hardware.
  *
  *  ===========================================================================
  *
  *  Copyright 2008 Jesse DeGuire and Nathan Sprague
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -31,36 +30,40 @@
  *
  */
 
+// TODO: Move the specific analog-to-x methods to the controller!
+
 #ifndef COIL_H
 #define COIL_H
 
-#include <QObject>
 #include <QString>
 #include <QThread>
+#include <QMutex>
 
-#include "qextserialport/qextserialport.h"
+#include "../CoreObject.h"
+
+#include "../qextserialport/qextserialport.h"
 
 /// 8-bit unsigned value.  Called "byte" to keep continuity with iRobot naming
 /// (and so I don't have to write "unsigned char" all the time).
 typedef unsigned char	byte;
 
-class COIL : public QObject
+class COIL : public CoreObject
 {
-    Q_OBJECT
 
+	Q_OBJECT
 
 public:
-    COIL(QString portName);
-    ~COIL();
+	COIL(Create *create, QString name = "COIL");
+    COIL(QString portName, Create *create, QString name = "COIL");
+    virtual ~COIL();
 
-private:
-	QextSerialPort *port;
-	static int debug;			//< debug mode status
+protected:
+	QextSerialPort *port;		// Cross-platform native serial port
+	QMutex _mutex;				// Locking device for general purposes...
 
 public:
 	int cwrite (QextSerialPort *port, byte* buf, int numbytes);
 	int cread (QextSerialPort *port, byte* buf, int numbytes);
-	//static int stopWait();
 
 public:
 
@@ -70,6 +73,7 @@ public:
      */
     typedef enum
     {
+    	OPCODE_RESET				= 7, // undocumented
     	OPCODE_START				= 128,
     	OPCODE_BAUD,
     	OPCODE_SAFE					= 131,
@@ -202,6 +206,40 @@ public:
      	LED_PLAY		= 2
     } oi_led;
 
+    /** \brief IR Signal Codes
+	 *
+	 *  Used for decoding the IR_SENSOR sensor packet
+	 */
+	typedef enum
+	{
+		IR_SIGNAL_REMOTECONTROL_LEFT 					= 129,
+		IR_SIGNAL_REMOTECONTROL_FORWARD 				= 130,
+		IR_SIGNAL_REMOTECONTROL_RIGHT 					= 131,
+		IR_SIGNAL_REMOTECONTROL_SPOT 					= 132,
+		IR_SIGNAL_REMOTECONTROL_MAX 					= 133,
+		IR_SIGNAL_REMOTECONTROL_SMALL 					= 134,
+		IR_SIGNAL_REMOTECONTROL_MEDIUM 					= 135,
+		IR_SIGNAL_REMOTECONTROL_LARGE_CLEAN 			= 136,
+		IR_SIGNAL_REMOTECONTROL_PAUSE 					= 137,
+		IR_SIGNAL_REMOTECONTROL_POWER 					= 138,
+		IR_SIGNAL_REMOTECONTROL_ARCFORWARDLEFT 			= 139,
+		IR_SIGNAL_REMOTECONTROL_ARCFORWARDRIGHT 		= 140,
+		IR_SIGNAL_REMOTECONTROL_DRIVESTOP 				= 141,
+		IR_SIGNAL_SCHEDULINGREMOTE_SEND_ALL 			= 142,
+		IR_SIGNAL_SCHEDULINGREMOTE_SEEK_DOCK 			= 143,
+		IR_SIGNAL_HOMEBASE_RESERVED 					= 240,
+		IR_SIGNAL_HOMEBASE_REDBUOY 						= 248,
+		IR_SIGNAL_HOMEBASE_GREENBUOY 					= 244,
+		IR_SIGNAL_HOMEBASE_FORCEFIELD 					= 242,
+		IR_SIGNAL_HOMEBASE_REDBUOY_GREENBUOY 			= 252,
+		IR_SIGNAL_HOMEBASE_REDBUOY_FORCEFIELD 			= 250,
+		IR_SIGNAL_HOMEBASE_GREENBUOY_FORCEFIELD 		= 246,
+		IR_SIGNAL_HOMEBASE_REDBUOY_GREENBUOY_FORCEFIELD	= 254,
+		IR_SIGNAL_UNKNOWN								= 255
+	} oi_irsignal;
+
+
+
     /** \brief Output switches
      *
      *  Used for setting the the state of the digital and lowside outputs on the Cargo Bay connector.
@@ -226,6 +264,32 @@ public:
 		OI_MODE_FULL	= 3
 	} oi_mode;
 
+	/** \brief Charging State values
+	 *
+	 *
+	 */
+	typedef enum
+	{
+		OI_CHARGINGSTATE_NOCHARGE			= 0,
+		OI_CHARGINGSTATE_RECONDITIONING		= 1,
+		OI_CHARGINGSTATE_FULLCHARGING		= 2,
+		OI_CHARGINGSTATE_TRICKLECHARGING	= 3,
+		OI_CHARGINGSTATE_WAITING			= 4,
+		OI_CHARGINGSTATE_CHARGINGFAULT		= 5
+	} oi_chargingstate;
+
+	/** \brief Charging Sources values
+	 *
+	 *
+	 */
+	typedef enum
+	{
+		OI_CHARGINGSOURCES_NONE			= 0,
+		OI_CHARGINGSOURCES_HOMEBASE		= 2,
+		OI_CHARGINGSOURCES_INTERNAL		= 1,
+		OI_CHARGINGSOURCES_BOTH			= 3
+	} oi_chargingsources;
+
 
     /** \brief Output switches
 	 *
@@ -233,57 +297,64 @@ public:
 	 */
 	typedef enum
 	{
-		BUMPWHEELDROP_BUMP_RIGHT		= 1,
-		BUMPWHEELDROP_BUMP_LEFT			= 2,
-		BUMPWHEELDROP_WHEELDROP_RIGHT	= 4,
-		BUMPWHEELDROP_WHEELDROP_LEFT	= 8,
-		BUMPWHEELDROP_WHEELDROP_CASTER	= 16
+		BUMPWHEELDROP_BUMP_RIGHT			= 1,
+		BUMPWHEELDROP_BUMP_LEFT				= 2,
+		BUMPWHEELDROP_BUMP_LEFT_AND_RIGHT 	= 3,
+		BUMPWHEELDROP_WHEELDROP_RIGHT		= 4,
+		BUMPWHEELDROP_WHEELDROP_LEFT		= 8,
+		BUMPWHEELDROP_WHEELDROP_CASTER		= 16
 	} oi_bumpwheeldrop;
 
 
 public:
-    int startOI ();
-    int setBaud (BaudRateType rate);
-    int enterPassiveMode ();
-    int enterSafeMode ();
-    int enterFullMode ();
-    int runDemo (oi_demo demo);
-    int runCoverDemo ();
-    int runCoverAndDockDemo ();
-    int runSpotDemo ();
-    int drive (short vel, short rad);
-    int directDrive (short Lwheel, short Rwheel);
-    int driveDistance (short vel, short rad, int dist, int interrupt);
-    int turn (short vel, short rad, int angle, int interrupt);
-    int setLEDState (short lflags, byte pColor, byte pInten);
-    int setDigitalOuts (oi_output oflags);
-    int setPWMLowSideDrivers (byte pwm0, byte pwm1, byte pwm2);
-    int setLowSideDrivers (oi_output oflags);
-    int sendIRbyte (byte irbyte);
-    int writeSong (byte number, byte length, byte* song);
-    int playSong (byte number);
-    int readRawSensor (oi_sensor packet, byte* buffer, int size);
-    int readSensor (oi_sensor packet);
-    int getDistance ();
-    int getAngle ();
-    int getVelocity ();
-    int getTurningRadius ();
-    int getBumpsAndWheelDrops ();
-    int getCliffs ();
-    int getAnalogSensorDistance ();
-    int* getAllSensors ();
-    int readRawSensorList (oi_sensor* packet_list, byte num_packets, byte* buffer, int size);
-    int writeScript (byte* script, byte size);
-    int playScript ();
-    byte* getScript ();
-    void waitTime (unsigned long msecs);
-    int stopWait ();
-    int waitDistance (int dist, int interrupt);
-    int waitAngle (int angle, int interrupt);
-    int stopOI ();
-    void enableDebug ();
-    void disableDebug ();
-    int extractSensorFromData(int* data, oi_sensor packet);
+    virtual int startOI ();
+    virtual int setBaud (BaudRateType rate);
+    virtual int enterPassiveMode ();
+    virtual int enterSafeMode ();
+    virtual int enterFullMode ();
+    virtual int runDemo (oi_demo demo);
+    virtual int runCoverDemo ();
+    virtual int runCoverAndDockDemo ();
+    virtual int runSpotDemo ();
+    virtual int drive (short vel, short rad);
+    virtual int directDrive (short Lwheel, short Rwheel);
+    virtual int driveDistance (short vel, short rad, int dist, int interrupt);
+    virtual int turn (short vel, short rad, int angle, int interrupt);
+    virtual int setLEDState (short lflags, byte pColor, byte pInten);
+    virtual int setDigitalOuts (oi_output oflags);
+    virtual int setPWMLowSideDrivers (byte pwm0, byte pwm1, byte pwm2);
+    virtual int setLowSideDrivers (oi_output oflags);
+    virtual int sendIRbyte (byte irbyte);
+    virtual int writeSong (byte number, byte length, byte* song);
+    virtual int playSong (byte number);
+    virtual int readRawSensor (oi_sensor packet, byte* buffer, int size);
+    virtual int readSensor (oi_sensor packet);
+    virtual int getDistance ();
+    virtual int getAngle ();
+    virtual int getVelocity ();
+    virtual int getTurningRadius ();
+    virtual int getBumpsAndWheelDrops ();
+    virtual int getCliffs ();
+    virtual int getIRSensorDistanceFromAnalogSignal (int analogSignal);
+    virtual int getWallSensorDistanceFromSignal (int signal);
+    virtual bool getAllSensors (int* data);
+    virtual int readRawSensorList (oi_sensor* packet_list, byte num_packets, byte* buffer, int size);
+    virtual int writeScript (byte* script, byte size);
+    virtual int playScript ();
+    virtual byte* getScript ();
+    virtual void waitTime (unsigned long msecs);
+    virtual int stopWait ();
+    virtual int waitDistance (int dist, int interrupt);
+    virtual int waitAngle (int angle, int interrupt);
+    virtual int stopOI ();
+    virtual int extractSensorFromData(int* data, oi_sensor packet);
+    virtual int resetOI();
+    virtual bool isConnected();
+    virtual void disconnect();
+
+signals:
+	void disconnected();
+	void incompleteSensorDataRead();
 
 };
 

@@ -38,14 +38,14 @@ StraightPathMoveTask::~StraightPathMoveTask() {
 
 void StraightPathMoveTask::process() {
 
-	// Calculate movement to destination based on current position
-	Trafo2D move = create->movementTracker->transformation.inv() * destination;
-	double distance = std::sqrt(move.trans().x()*move.trans().x() + move.trans().y()*move.trans().y());
-	double angle =   std::atan2(move.trans().x(), move.trans().y() );
-
-	// Process movement
-	((SeeYouController*) create->controller)->turn((int)-Deg(angle), this->speed);
-	((SeeYouController*) create->controller)->move((int)distance, this->speed);
+//	// Calculate movement to destination based on current position
+//	Trafo2D move = create->tracker->transformation.inv() * destination;
+//	double distance = std::sqrt(move.trans().x()*move.trans().x() + move.trans().y()*move.trans().y());
+//	double angle =   std::atan2(move.trans().x(), move.trans().y() );
+//
+//	// Process movement
+//	((SeeYouController*) create->controller)->turn((int)-Deg(angle), this->speed);
+//	((SeeYouController*) create->controller)->move((int)distance, this->speed);
 
 	status = Task::Finished;
 

@@ -1,19 +1,21 @@
 /*
  *  TaskManager.h
  *
- *  The Task Manager is a separate thread which contains a Task List. The
- *  Task List is nothing more than a helper class for sequentially storing
- *  and retrieving Tasks, offering useful functions such as getNextSpecificTask(type).
- *  As soon as the Task Manager receives a Task, appends it to the Task List and
- *  starts to execute it. If the Task Manager receives more than one Task at a
- *  time, it appends it to the back of the Task List, where in time will eventually
- *  be executed. The Task Manager also allows Tasks to be interrupted. In this case
- *  the manager will set the current Task as Interrupted and go to the next Task in
- *  the list.
+ *  The TaskManager is an essential part of the emss Core and is responsible for
+ *  scheduling and executing Tasks. It inherits from CoreThread, so it runs in
+ *  its own thread. The scheduling and execution of Tasks occur within the same run-loop.
+ *  Internally, the TaskManager maintains a special queue called TaskList. This data structure
+ *  is similar to a queue, except it extends features to enable the extraction of specific
+ *  Tasks, such as ready-for-execution Tasks only. When a Task is added to the TaskList and
+ *  scheduled for execution, its process() method is called repetively by the TaskManager
+ *  which in turn performs the execution of the Task. Because of this architecture,
+ *  the process() method of an individual Task may not block or delay for a long time as
+ *  the Watchdog will kick in and report the TaskManager as a runaway CoreThread.
+ *
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -35,22 +37,26 @@
 #ifndef TASKMANAGER_H_
 #define TASKMANAGER_H_
 
-#include <QThread>
+#include "../CoreThread.h"
 
-#include "../create.h"
 #include "../Task/TaskList.h"
 
-class TaskManager : public QThread {
+class ThreadMonitorWatchdogAction;
+
+class TaskManager : public CoreThread {
 
 	Q_OBJECT
 
 private:
 	Task *currentTask;
+	Task *idleTask;
 	bool stopRequested;
+	ThreadMonitorWatchdogAction *watchdogAction;
 
 public:
-	Create *create;
 	TaskList *tasks;
+
+
 
 public:
 	TaskManager(Create *create);
@@ -58,10 +64,19 @@ public:
 	virtual void run();
 	void stop();
 	void addTask(Task *task);
+	void waitForAllTasksToFinish();
 	void start(QThread::Priority priority);
-	void setCurrentTask(Task::TaskStatus stat);
-	int getCurrentTask();
-	Task* getTask();
+	Task* getCurrentTask();
+	Task* getIdleTask();
+	void setIdleTask(Task *idleTask);
+	void interruptAllTasks();
+
+private:
+	void sendTaskStatusChangeNotification(bool started, Task *task);
+
+signals:
+	void taskListChanged();
+
 };
 
 #endif /* TASKMANAGER_H_ */

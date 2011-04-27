@@ -3,7 +3,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -24,16 +24,23 @@
 
 #include "Task.h"
 
-Task::Task(QString name, Create *create, int interval, TaskPriority priority) {
-	this->name = name;
-	this->create = create;
+Task::Task(QString name, Create *create, int interval, TaskPriority priority) : CoreObject(name, create) {
 	this->interval = interval;
 	this->status = Task::Waiting;
 	this->priority = priority;
+
 	interruptOnNextProcess = false;
 }
 
 Task::~Task() {
+
+}
+
+void Task::preProcess() {
+
+}
+
+void Task::postProcess() {
 
 }
 
@@ -45,3 +52,19 @@ bool Task::interruptRequested() {
 	return interruptOnNextProcess;
 }
 
+int Task::getInterval(){
+	return interval;
+}
+
+QString Task::getName(){
+	return name;
+}
+
+QString Task::getStatusAsString() {
+	// Waiting, Running, Finished, Interrupted
+	if(status == Waiting) 			return "waiting";
+	else if(status == Running) 		return "running";
+	else if(status == Finished) 	return "finished";
+	else if(status == Interrupted) 	return "interrupted";
+	else 							return "unknown";
+}

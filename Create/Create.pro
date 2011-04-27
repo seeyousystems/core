@@ -4,7 +4,35 @@ QT += core \
     gui \
     xml \
     network
-HEADERS += Network/Network.h \
+HEADERS += GUI/OptionsDialog.h \
+    GUI/WeightEditor.h \
+    Library/Math/complex.h \
+    Library/Math/frenet.h \
+    Library/Math/gps.h \
+    MovementTracker/AveragedTracker.h \
+    MovementTracker/CorrectedFrenetMovementTracker.h \
+    MovementTracker/ExpectedMovementTracker.h \
+    MovementTracker/FrenetMovementTracker.h \
+    MovementTracker/SelfCorrectingTracker.h \
+    MovementTracker/SingleTracker.h \
+    MovementTracker/Tracker.h \
+    Navigation/Navigation.h \
+    Navigation/SystemOfWeightsNavigation.h \
+    Navigation/Weight/AccelerationFilterWeight.h \
+    Navigation/Weight/ControllerSpeedWeight.h \
+    Navigation/Weight/FullSpeedWeight.h \
+    Navigation/Weight/JoystickWeight.h \
+    Navigation/Weight/RoamingWeight.h \
+    Navigation/Weight/Weight.h \
+    Task/JoystickNavigationTask.h \
+    Controller/BlockDriveController.h \
+    Controller/FluidDriveController.h \
+    Library/Joystick2D.h \
+    CoreFactory.h \
+    Library/HeapLogger.h \
+    CoreObject.h \
+    CoreThread.h \
+    Network/Network.h \
     Network/RemoteInterfaceMessage.h \
     Network/networkcommunication.h \
     Library/Algorithm/VFF.h \
@@ -13,13 +41,11 @@ HEADERS += Network/Network.h \
     Task/StraightPathMoveTask.h \
     Task/MoveTask.h \
     Task/SeeYouTask.h \
-    Controller/BlockDriveController.h \
     Controller/SensorController.h \
     Controller/ArduinoController.h \
     COIL/ArduinoCOIL.h \
     Task/TestMoveTask.h \
     Controller/SeeYouController.h \
-    Controller/FluidDriveController.h \
     GUI/TaskEditor.h \
     JoystickView.h \
     interface.h \
@@ -43,7 +69,24 @@ HEADERS += Network/Network.h \
     Library/SleeperThread.h \
     Library/Util.h \
     create.h
-SOURCES += Network/Network.cpp \
+SOURCES += GUI/OptionsDialog.cpp \
+    GUI/WeightEditor.cpp \
+    Library/Math/gps.cpp \
+    MovementTracker/AveragedTracker.cpp \
+    MovementTracker/CorrectedFrenetMovementTracker.cpp \
+    MovementTracker/ExpectedMovementTracker.cpp \
+    MovementTracker/FrenetMovementTracker.cpp \
+    MovementTracker/SelfCorrectingTracker.cpp \
+    MovementTracker/SingleTracker.cpp \
+    MovementTracker/Tracker.cpp \
+    Navigation/Navigation.cpp \
+    Navigation/SystemOfWeightsNavigation.cpp \
+    Task/JoystickNavigationTask.cpp \
+    Controller/BlockDriveController.cpp \
+    Controller/FluidDriveController.cpp \
+    CoreFactory.cpp \
+    Library/HeapLogger.cpp \
+    Network/Network.cpp \
     Network/RemoteInterfaceMessage.cpp \
     Network/networkcommunication.cpp \
     Library/Algorithm/VFF.cpp \
@@ -51,13 +94,11 @@ SOURCES += Network/Network.cpp \
     Task/StraightPathMoveTask.cpp \
     Task/MoveTask.cpp \
     Task/SeeYouTask.cpp \
-    Controller/BlockDriveController.cpp \
     Controller/SensorController.cpp \
     Controller/ArduinoController.cpp \
     COIL/ArduinoCOIL.cpp \
     Task/TestMoveTask.cpp \
     Controller/SeeYouController.cpp \
-    Controller/FluidDriveController.cpp \
     GUI/TaskEditor.cpp \
     JoystickView.cpp \
     interface.cpp \

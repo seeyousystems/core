@@ -6,7 +6,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -28,21 +28,21 @@
 #ifndef TASKLIST_H_
 #define TASKLIST_H_
 
-#include <QObject>
 #include <QList>
+#include <QReadWriteLock>
 
 #include "Task.h"
 
-class TaskList : QObject {
+class TaskList : CoreObject {
 
 	Q_OBJECT
 
 public:
 	QList<Task*> *list;
-	int currentTask;
 
 private:
-	//int currentTask;
+	int currentTask;
+	QReadWriteLock lock;
 
 public:
 	TaskList();
@@ -54,6 +54,9 @@ public:
 	Task* at(int index);
 	QList<Task*> getSpecificTasks(QString type);
 	Task* getNextSpecificTask(QString type);
+	void deleteAllTasks();
+	void setAllTaskStatus(Task::TaskStatus status);
+	bool hasTaskWithStatus(Task::TaskStatus status);
 };
 
 #endif /* TASKLIST_H_ */

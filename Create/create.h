@@ -24,11 +24,13 @@ class ArduinoCOIL;
 //class NavPointsObject;
 //class NavigationObject;
 
-class MovementTracker;
+class Tracker;
 class Controller;
 class ArduinoController;
 
-//class Navigation;
+class Navigation;
+
+class Joystick2D;
 
 class Task;
 class TaskManager;
@@ -80,11 +82,13 @@ public:
 //	NavPointsObject *navPointsObject;
 //	NavigationObject *navigationObject;
 
-	MovementTracker *movementTracker;
+	Tracker *tracker;
 	Controller *controller;
 	ArduinoController *arduinoController;
 
-	//Navigation *navigation;
+	Navigation *navigation;
+
+	Joystick2D *joystick;
 
 	TaskManager *taskManager;
 
@@ -122,7 +126,7 @@ public slots:
 	void robotCollided(long x, long y);
 	void objectDetected(long x, long y);
 	bool disconnect();
-	void run();
+	void start();
 	void stop();
 	void abort();
 	void reset();
@@ -130,6 +134,8 @@ public slots:
 signals:
 	void focusOnPoint(long x, long y);
 	void coreReset();
+	void createConnected();
+	void createDisconnected();
 
 };
 

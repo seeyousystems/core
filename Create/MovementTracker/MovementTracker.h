@@ -1,20 +1,17 @@
 /*
  *  MovementTracker.h
  *
- *  Responsible for tracking movements of the robot, and in turn performing
- *  the localization, a Movement Tracker accepts signals from the active
- *  Controller and translates them accordingly. Furthermore, Trackers also
- *  forward changes about the robot position to other components, especially
- *  the Maps, in forms of signals. The Movement Tracker is an abstract class
- *  which needs to be defined by subclasses. The only significant variable
- *  is transformation, which is a Trafo2D object. The input slots, i.e.
- *  signals received from the Controller, are registerMovedDistance(distance),
- *  registerChangedAngle(angle), registerCollision(), and
- *  registerObjectDetected(distance,angle).
+ *  A MovementTracker is responsible for receiving the Tracker�s messages regarding
+ *  changes in the state of the robot and performing localization based on this
+ *  information. The methods a MovementTracker implementation must implement are
+ *  registerMovedDistance(...), registerChangedAngle(...), and
+ *  registerChangedWheelSpeed(...). However, not all of these methods must react
+ *  in some fashion � technically and mathematically it is sufficient to react
+ *  solely to the registerChangedWheelSpeed(...) method.
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -36,47 +33,49 @@
 #ifndef MOVEMENTTRACKER_H_
 #define MOVEMENTTRACKER_H_
 
-#include <QObject>
+#include <QReadWriteLock>
 
-#include "../create.h"
+#include "../CoreObject.h"
 #include "../Library/Math.h"
 
-class MovementTracker : public QObject {
+class MovementTracker : public CoreObject {
 
 	Q_OBJECT
 
-public:
-
+protected:
 	Trafo2D transformation; // Transformation object with double precision
-	long totalDistance;
-	long relativeDistance;
+	long totalDistance; //TODO: update to double value
+	long relativeDistance; //TODO: update to double value
+	double totalAngle;
+	double relativeAngle;
+	double wheelOffset;
+	int weight;
 
-public:
-	QString name;
-	Create *create;
+protected:
+	QReadWriteLock lock;
 
 public:
 	MovementTracker(QString name, Create *create);
 	virtual ~MovementTracker();
-	void connectController(QObject *target);
-	void connectMaps(QObject *target);
 	long x(); // X coordinate in milli-meters
 	long y(); // Y coordinate in milli-meters
-	double rotation(); // Rotation as clockwise positive (Core/COIL format)
+	Vector2D translation(); // The current translation in space
+	double rotation(); // Rotation as clockwise positive (Core/COIL format) in degrees
+	void setTransformation(Trafo2D t);
+	Trafo2D getTransformation();
+	long getTotalDistance();
+	long getRelativeDistance();
+	double getTotalAngle();
+	double getRelativeAngle();
+	int getWeight();
 
-
-public slots:
-	/* Slots for movement signals from Controller or other interfaces */
+public:
 	virtual void registerMovedDistance(double distance) = 0;
 	virtual void registerChangedAngle(double angle) = 0;
-	virtual void registerCollision() = 0;
-	virtual void registerObjectDetected(double distance, double angle) = 0;
-
+	virtual void registerChangedWheelSpeed(int, int) = 0;
 
 signals:
 	void moved(long x, long y, double rotation);
-	void collision(long x, long y);
-	void objectDetected(long x, long y);
 };
 
 #endif /* MOVEMENTTRACKER_H_ */

@@ -3,7 +3,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -30,7 +30,6 @@
 #define MAX(a,b)	(a > b? a : b)
 #define MIN(a,b)	(a < b? a : b)
 
-int COIL::debug = 0;
 
 /**
  * 	Constructs a new COIL object.
@@ -38,7 +37,7 @@ int COIL::debug = 0;
  *  \param portName		The name of the port to which COIL will communicate with the iRobot,
  *  					such as 'COM4'.
  */
-COIL::COIL(QString portName)
+COIL::COIL(QString portName, Create *create, QString name) : CoreObject(name, create)
 {
 	port = new QextSerialPort(portName);
 	port->setBaudRate(BAUD57600);
@@ -46,11 +45,11 @@ COIL::COIL(QString portName)
 	port->setParity(PAR_NONE);
 	port->setDataBits(DATA_8);
 	port->setStopBits(STOP_1);
+}
 
-
-	if(!port->open(QIODevice::ReadWrite | QIODevice::Unbuffered)) {
-		Debug::warning("[COIL] Could not open serial port on %1", portName);
-	}
+COIL::COIL(Create *create, QString name) : CoreObject(name, create)
+{
+	this->port = NULL;
 }
 
 COIL::~COIL()
@@ -70,17 +69,24 @@ COIL::~COIL()
  */
 int COIL::startOI ()
 {
+	if(!port->isOpen()) {
+		if(!port->open(QIODevice::ReadWrite | QIODevice::Unbuffered)) {
+			Debug::warning("[COIL] could not open serial port");
+			return -1;
+		}
+	}
+
 	byte cmd[1];
 	cmd[0] = OPCODE_START;
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error("[COIL] Could not start OI: unable to send command");
+		Debug::error("[COIL] could not start OI: unable to send command");
 		return -1;
 	}
 
 	if (readSensor(SENSOR_OI_MODE) != OI_MODE_PASSIVE) {
-		Debug::error("[COIL] Could not start OI: unable to enter passive mode");
+		Debug::error("[COIL] could not start OI: unable to enter passive mode");
 		return -1;
 	}
 
@@ -129,7 +135,7 @@ int COIL::setBaud (BaudRateType rate)
 
 	if (cwrite (port, cmd, 2) < 0)
 	{
-		Debug::error ("Could not set baud");
+		Debug::error ("[COIL] could not set baud");
 		return -1;
 	}
 
@@ -157,12 +163,12 @@ int COIL::enterPassiveMode()
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error ("[COIL] Could not enter Passive Mode: unable to send command");
+		Debug::error ("[COIL] could not enter Passive Mode: unable to send command");
 		return -1;
 	}
 
 	if (readSensor(SENSOR_OI_MODE) != OI_MODE_PASSIVE) {
-		Debug::error("[COIL] Could not enter Passive Mode: unable to enter mode");
+		Debug::error("[COIL] could not enter Passive Mode: unable to enter mode");
 		return -1;
 	}
 
@@ -185,13 +191,13 @@ int COIL::enterSafeMode ()
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error ("[COIL] Could not enter Safe Mode: unable to send command");
+		Debug::error ("[COIL] could not enter Safe Mode: unable to send command");
 		return -1;
 	}
 
 
 	if (readSensor(SENSOR_OI_MODE) != OI_MODE_SAFE) {
-		Debug::error("[COIL] Could not enter Passive Mode: unable to enter mode");
+		Debug::error("[COIL] could not enter Passive Mode: unable to enter mode");
 		return -1;
 	}
 
@@ -215,12 +221,12 @@ int COIL::enterFullMode ()
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error ("[COIL] Could not enter Full Mode: unable to send command");
+		Debug::error ("[COIL] could not enter Full Mode: unable to send command");
 		return -1;
 	}
 
 	if (readSensor(SENSOR_OI_MODE) != OI_MODE_FULL) {
-		Debug::error("[COIL] Could not enter Full Mode: unable to enter mode");
+		Debug::error("[COIL] could not enter Full Mode: unable to enter mode");
 		return -1;
 	}
 
@@ -244,7 +250,7 @@ int COIL::runDemo (oi_demo demo)
 
 	if (cwrite (port, cmd, 2) < 0)
 	{
-		Debug::error ("[COIL] Could not run demo");
+		Debug::error ("[COIL] could not run demo");
 	}
 	return 0;
 }
@@ -260,7 +266,7 @@ int COIL::runCoverDemo ()
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error ("[COIL] Could not start Cover demo");
+		Debug::error ("[COIL] could not start Cover demo");
 	}
 	return 0;
 }
@@ -276,7 +282,7 @@ int COIL::runCoverAndDockDemo ()
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error ("[COIL] Could not start Cover and Dock demo");
+		Debug::error ("[COIL] could not start Cover and Dock demo");
 		return -1;
 	}
 	return 0;
@@ -293,7 +299,7 @@ int COIL::runSpotDemo ()
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error ("[COIL] Could not start Spot demo");
+		Debug::error ("[COIL] could not start Spot demo");
 		return -1;
 	}
 	return 0;
@@ -336,7 +342,7 @@ int COIL::drive (short vel, short rad)
 
 	if (cwrite (port, cmd, 5) < 0)
 	{
-		Debug::error ("[COIL] Could not start drive");
+		Debug::error ("[COIL] could not start drive");
 		return -1;
 	}
 	return 0;
@@ -371,7 +377,7 @@ int COIL::directDrive (short Lwheel, short Rwheel)
 
 	if (cwrite (port, cmd, 5) < 0)
 	{
-		Debug::error ("[COIL] Could not start direct drive");
+		Debug::error ("[COIL] could not start direct drive");
 		return -1;
 	}
 	return 0;
@@ -464,7 +470,7 @@ int COIL::setLEDState (short lflags, byte pColor, byte pInten)
 
 	if (cwrite (port, cmd, 4) < 0)
 	{
-		Debug::error ("[COIL] Could not set LEDs");
+		Debug::error ("[COIL] could not set LEDs");
 		return -1;
 	}
 	return 0;
@@ -488,7 +494,7 @@ int COIL::setDigitalOuts (oi_output oflags)
 
 	if (cwrite (port, cmd, 2) < 0)
 	{
-		Debug::error ("[COIL] Could not set digital outs");
+		Debug::error ("[COIL] could not set digital outs");
 		return -1;
 	}
 	return 0;
@@ -522,7 +528,7 @@ int COIL::setPWMLowSideDrivers (byte pwm0, byte pwm1, byte pwm2)
 
 	if (cwrite (port, cmd, 4) < 0)
 	{
-		Debug::error ("[COIL] Could not set low side driver duty cycle");
+		Debug::error ("[COIL] could not set low side driver duty cycle");
 		return -1;
 	}
 	return 0;
@@ -548,7 +554,7 @@ int COIL::setLowSideDrivers (oi_output oflags)
 
 	if (cwrite (port, cmd, 2) < 0)
 	{
-		Debug::error ("[COIL] Could not set low side driver state");
+		Debug::error ("[COIL] could not set low side driver state");
 		return -1;
 	}
 	return 0;
@@ -572,7 +578,7 @@ int COIL::sendIRbyte (byte irbyte)
 
 	if (cwrite (port, cmd, 2) < 0)
 	{
-		Debug::error ("[COIL] Could not write to IR");
+		Debug::error ("[COIL] could not write to IR");
 		return -1;
 	}
 	return 0;
@@ -611,7 +617,7 @@ int COIL::writeSong (byte number, byte length, byte* song)
 
 	if (cwrite (port, cmd, 3+2*length) < 0)
 	{
-		Debug::error ("[COIL] Could not write new song");
+		Debug::error ("[COIL] could not write new song");
 		return -1;
 	}
 	return 0;
@@ -636,7 +642,7 @@ int COIL::playSong (byte number)
 
 	if (cwrite (port, cmd, 2) < 0)
 	{
-		Debug::error ("[COIL] Could not play song");
+		Debug::error ("[COIL] could not play song");
 		return -1;
 	}
 	return 0;
@@ -664,7 +670,8 @@ int COIL::readRawSensor (oi_sensor packet, byte* buffer, int size)
 
 	if (cwrite (port, cmd, 2) < 0)
 	{
-		Debug::error ("[COIL] Could not request sensor");
+		emit incompleteSensorDataRead();
+		Debug::error ("[COIL] could not request sensor");
 		return -1;
 	}
 
@@ -673,7 +680,8 @@ int COIL::readRawSensor (oi_sensor packet, byte* buffer, int size)
 	numread = cread (port, buffer, size);
 	if (numread < 0)
 	{
-		Debug::error ("[COIL] Could not read sensor");
+		emit incompleteSensorDataRead();
+		Debug::error ("[COIL] could not read sensor");
 		return -1;
 	}
 
@@ -759,7 +767,7 @@ int COIL::readSensor (oi_sensor packet)
 				free (buffer);
 				return INT_MIN;
 			}
-			result = (short) buffer[1] | (buffer[0] << 8);
+			result = buffer[1] | (buffer[0] << 8);
 			break;
 
 		//two-byte signed sensors
@@ -904,9 +912,9 @@ int COIL::getCliffs ()
  *
  *	\return		Distance of sensed object in millimeters
  */
-int COIL::getAnalogSensorDistance ()
+int COIL::getIRSensorDistanceFromAnalogSignal (int analogSignal)
 {
-	int reverseAnalog = 1000 - readSensor (SENSOR_ANALOG_SIGNAL);
+	int reverseAnalog = 1000 - analogSignal;
 	double ratio = 1.0;
 
 	if		(reverseAnalog <= 458) 							ratio = 0.163755459;
@@ -929,9 +937,45 @@ int COIL::getAnalogSensorDistance ()
 	else if	(reverseAnalog > 918 && reverseAnalog < 922)	ratio = 1.057483731;
 	else if	(reverseAnalog >= 922)							ratio = 1.162162162;
 
-	int distance = reverseAnalog * ratio; // millimeters
+	int distance = (int)(reverseAnalog * ratio); // millimeters
 	return distance;
 }
+
+/** \brief	Get wall sensor in millimeters
+ *
+ *	Returns the current wall sensor data interpreted as millimeters by using a linear
+ *	conversion at points x=0,x=60 where x is distance measured.
+ *
+ *	The value is determined using the following data where the mean material is the
+ *	mean of several cardboards...
+ *
+ *	Material	Distance Measured (mm)	Analog Signal
+ *	Mean	100	0
+ *	Mean	90	1.85
+ *	Mean	80	1.3
+ *	Mean	70	2.62
+ *	Mean	60	10
+ *	Mean	50	29.1
+ *	Mean	40	65.65
+ *	Mean	30	116.15
+ *	Mean	20	192
+ *	Mean	10	240
+ *	Mean	0	262
+ *
+ *	\return		Distance of sensed object in millimeters
+ */
+int COIL::getWallSensorDistanceFromSignal (int signal) {
+	if(signal < 10) {
+		return INT_MAX;
+	} else if(signal > 262) {
+		return 0;
+	} else {
+		int ret = (int)(((10.0-262.0)/(60.0))*(double)signal+262.0);
+		if(ret > 0)	return ret;
+		else		return 0;
+	}
+}
+
 
 /** \brief	Get data from all sensors
  *
@@ -940,56 +984,62 @@ int COIL::getAnalogSensorDistance ()
  *
  *	\return		Pointer to array of sensor data or a NULL pointer on error.
  */
-int* COIL::getAllSensors()
+bool COIL::getAllSensors(int* result)
 {
-	byte buf[52];
-	int* result = (int*)malloc (36*sizeof(int));
-	int i, numread;
+	if(!result) return false;
 
-	if (NULL == result)
-	{
-		Debug::error ("[COIL] Could not get all sensors:  Memory allocation failed");
-		return NULL;
-	}
+	// Lock this to make sure that extractSensorData() doesn't collide from
+	// another thread. Not entirely clean as the data source (*result) could
+	// vary from different sources, but typically will never be the case.
+	_mutex.lock(); {
 
-	memset (buf, 0, 52*sizeof(byte));
-	memset (result, 0, 36*sizeof(int));
+		// Init
+		byte buf[52];
+		int i, numread;
 
-	numread = readRawSensor (SENSOR_GROUP_ALL, buf, 52);
-	if (numread < 52)
-	{
-		Debug::error ("Could not get all sensors:  Incomplete data (%1/52)", numread);
-		free (result);
-		return NULL;
-	}
+		// Clear memory
+		memset (buf, 0, 52*sizeof(byte));
+		memset (result, 0, 36*sizeof(int));
 
-	//Bumps And Wheel Drops to Buttons
-	for (i = 0; i < 12; i++)
-		result[i] = buf[i];
+		// Read all
+		numread = readRawSensor (SENSOR_GROUP_ALL, buf, 52);
+		if (numread < 52)
+		{
+			emit incompleteSensorDataRead();
+			Debug::error ("[COIL] could not get all sensors: incomplete data (%1/52)", numread);
+			_mutex.unlock();
+			return false;
+		}
 
-	result[12] = (short) ((buf[12] << 8) | buf[13]);		//Distance
-	result[13] = (short) ((buf[14] << 8) | buf[15]);		//Angle
-	result[14] = buf[16];						//Charging State
-	result[15] = (buf[17] << 8) | buf[18];				//Voltage
-	result[16] = (short) ((buf[19] << 8) | buf[20]);		//Current
-	result[17] = (char) buf[21];					//Battery Temp
+		//Bumps And Wheel Drops to Buttons
+		for (i = 0; i < 12; i++)
+			result[i] = buf[i];
 
-	//Battery Charge to Cliff Right Signal
-	for (i = 0; i <= 6; i++)
-		result[i + 18] = (buf[22 + 2*i] << 8) | buf[23 + 2*i];
+		result[12] = (short) ((buf[12] << 8) | buf[13]);		//Distance
+		result[13] = (short) ((buf[14] << 8) | buf[15]);		//Angle
+		result[14] = buf[16];									//Charging State
+		result[15] = (buf[17] << 8) | buf[18];					//Voltage
+		result[16] = (short) ((buf[19] << 8) | buf[20]);		//Current
+		result[17] = (char) buf[21];							//Battery Temp
 
-	result[25] = buf[36];						//Cargo Bay DI
-	result[26] = (buf[37] << 8) | buf[38];				//Cargo Bay Analog
+		//Battery Charge to Cliff Right Signal
+		for (i = 0; i <= 6; i++)
+			result[i + 18] = (buf[22 + 2*i] << 8) | buf[23 + 2*i];
 
-	//Charging Sources to Number Of Stream Packets
-	for (i = 0; i <= 4; i++)
-		result[i + 27] = buf[39 + i];
+		result[25] = buf[36];						//Cargo Bay DI
+		result[26] = (buf[37] << 8) | buf[38];				//Cargo Bay Analog
 
-	//Request sensors
-	for (i = 0; i <= 3; i++)
-		result [32 + i] = (short) ((buf[44 + 2*i] << 8) | buf[45 + 2*i]);
+		//Charging Sources to Number Of Stream Packets
+		for (i = 0; i <= 4; i++)
+			result[i + 27] = buf[39 + i];
 
-	return result;
+		//Request sensors
+		for (i = 0; i <= 3; i++)
+			result [32 + i] = (short) ((buf[44 + 2*i] << 8) | buf[45 + 2*i]);
+
+	} _mutex.unlock();
+
+	return true;
 }
 
 /** \brief	Get raw data from multiple sensors
@@ -1017,14 +1067,16 @@ int COIL::readRawSensorList (oi_sensor* packet_list, byte num_packets, byte* buf
 
 	if (cwrite (port, cmd, size+2) < 0)
 	{
-		Debug::error ("[COIL] Could not request sensor list");
+		emit incompleteSensorDataRead();
+		Debug::error ("[COIL] could not request sensor list");
 		return -1;
 	}
 
 	numread = cread (port, buffer, size);
 	if (numread < 0)
 	{
-		Debug::error ("[COIL] Could not read sensor list");
+		emit incompleteSensorDataRead();
+		Debug::error ("[COIL] could not read sensor list");
 		return -1;
 	}
 
@@ -1052,7 +1104,7 @@ int COIL::writeScript (byte* script, byte size)
 
 	if (cwrite (port, cmd, size+1) < 0)
 	{
-		Debug::error ("Could not write script");
+		Debug::error ("[COIL] could not write script");
 		return -1;
 	}
 	return 0;
@@ -1072,7 +1124,7 @@ int COIL::playScript ()
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error ("[COIL] Could not play script");
+		Debug::error ("[COIL] could not play script");
 		return -1;
 	}
 	return 0;
@@ -1094,12 +1146,12 @@ byte* COIL::getScript ()
 
 	if (cwrite (port, cmd, 1) < 0)
 	{
-		Debug::error ("[COIL] Could not request script");
+		Debug::error ("[COIL] could not request script");
 		return NULL;
 	}
 	if (cread (port, &size, 1) < 0)
 	{
-		 Debug::error ("[COIL] Could not get script size");
+		 Debug::error ("[COIL] could not get script size");
 		 return NULL;
 	}
 	script = (byte*) malloc ((size+1) * sizeof(byte));
@@ -1107,7 +1159,7 @@ byte* COIL::getScript ()
 
 	if (cread (port, script+1, size) < 0)
 	{
-		Debug::error ("[COIL] Could not get script data");
+		Debug::error ("[COIL] could not get script data");
 		return NULL;
 	}
 
@@ -1176,7 +1228,7 @@ int COIL::waitDistance (int dist, int interrupt)
 	{
 		//usleep (20000);
 		SleeperThread::msleep(20);
-		current = getDistance();
+		current = (int)getDistance();
 
 		if (INT_MIN == current) {
 			return INT_MIN;
@@ -1216,7 +1268,7 @@ int COIL::waitAngle (int angle, int interrupt)
 	{
 		//usleep (20000);
 		SleeperThread::msleep(20);
-		current = getAngle();
+		current = (int)getAngle();
 
 		if (INT_MIN == current) {
 			return INT_MIN;
@@ -1238,34 +1290,18 @@ int COIL::waitAngle (int angle, int interrupt)
  */
 int COIL::stopOI ()
 {
+	// Stop the movement of the robot
 	if (directDrive (0, 0) < 0)
 	{
-		Debug::error ("[COIL] Could not stop OI\n");
+		Debug::error ("[COIL] could not stop OI");
 		return -1;
 	}
+
+	// Close port and return success
 	port->close();
 	return 0;
 }
 
-/** \brief Enables Debug Mode
- *
- *  Turns on Debug Mode, which will print serial transfers to the console window.  Serial reads
- *  and writes will be printed in byte-aligned format, in the order they will be sent to the serial
- *  port.
- */
-void COIL::enableDebug ()
-{
-  debug = 1;
-}
-
-/** \brief Disables Debug Mode
- *
- *  Turns off Debug Mode, so that serial transfers will no longer be printed to the console window.
- */
-void COIL::disableDebug ()
-{
-  debug = 0;
-}
 
 /** \brief	Write data to the Create
  *
@@ -1282,30 +1318,25 @@ void COIL::disableDebug ()
  */
 int COIL::cwrite (QextSerialPort *port, byte* buf, int numbytes)
 {
-
+	if(!port->isOpen()) return -1;
 
 	int i, numwritten = 0, n = 0, numzeroes = 0;
 
-	//write (fd, (buf + numwritten), (numbytes - numwritten));
-
 	while (numwritten < numbytes)
 	{
-		//n = write (fd, (buf + numwritten), (numbytes - numwritten));
 		n = port->write( (char*)(buf + numwritten), (numbytes - numwritten) );
-		if (n < 0) return -1;
+		if (n < 0) {
+			Debug::error("[COIL] could not write to serial device: closing connection...");
+			port->close();
+			emit disconnected();
+			return -1;
+		}
 		if (n == 0)
 		{
 			numzeroes++;
 			if (numzeroes > 3) break;
 		}
 		numwritten += n;
-	}
-
-	if (debug)
-	{
-		printf ("Write: ");
-		for (i = 0; i < numwritten; i++) printf ("%d ", buf[i]);
-		printf (" (%d of %d bytes with %d tries)\n", numwritten, numbytes, numzeroes);
 	}
 
 	return numwritten;
@@ -1328,26 +1359,25 @@ int COIL::cwrite (QextSerialPort *port, byte* buf, int numbytes)
  */
 int COIL::cread (QextSerialPort *port, byte* buf, int numbytes)
 {
+	if(!port->isOpen()) return -1;
+
 	int i, numread = 0, n = 0, numzeroes = 0;
 
 	while (numread < numbytes)
 	{
-		//n = read (fd, (buf + numread), (numbytes - numread));
 		n = port->read( (char*)(buf + numread), (numbytes - numread));
-		if (n < 0) return -1;
+		if (n < 0) {
+			Debug::error("[COIL] could not read from serial device: closing connection...");
+			port->close();
+			emit disconnected();
+			return -1;
+		}
 		if (n == 0)
 		{
 			numzeroes++;
 			if (numzeroes > 5) break;
 		}
 		numread += n;
-	}
-
-	if (debug)
-	{
-		printf ("Read:   ");
-		for (i = 0; i < numread; i++) printf ("%d ", buf[i]);
-		printf (" (%d of %d bytes with %d tries)\n", numread, numbytes, numzeroes);
 	}
 
 	port->flush();
@@ -1366,50 +1396,89 @@ int COIL::cread (QextSerialPort *port, byte* buf, int numbytes)
  */
 int COIL::extractSensorFromData(int* data, oi_sensor packet) {
 
-	switch (packet)
-	{
-		//all one-byte unsigned sensors
-		case SENSOR_BUMPS_AND_WHEEL_DROPS: return data[0];
-		case SENSOR_WALL: return data[1];
-		case SENSOR_CLIFF_LEFT: return data[2];
-		case SENSOR_CLIFF_FRONT_LEFT: return data[3];
-		case SENSOR_CLIFF_FRONT_RIGHT: return data[4];
-		case SENSOR_CLIFF_RIGHT: return data[5];
-		case SENSOR_VIRTUAL_WALL: return data[6];
-		case SENSOR_OVERCURRENT: return data[7];
-		//case SENSOR_UNUSED: return data[8];
-		//case SENSOR_UNUSED: return data[9];
-		case SENSOR_INFRARED: return data[10];
-		case SENSOR_BUTTONS: return data[11];
-		case SENSOR_DISTANCE: return data[12];
-		case SENSOR_ANGLE: return data[13];
-		case SENSOR_CHARGING_STATE: return data[14];
-		case SENSOR_VOLTAGE: return data[15];
-		case SENSOR_CURRENT: return data[16];
-		case SENSOR_BATTERY_TEMP: return data[17];
-		case SENSOR_BATTERY_CHARGE: return data[18];
-		case SENSOR_BATTERY_CAPACITY: return data[19];
-		case SENSOR_WALL_SIGNAL: return data[20];
-		case SENSOR_CLIFF_LEFT_SIGNAL: return data[21];
-		case SENSOR_CLIFF_FRONT_LEFT_SIGNAL: return data[22];
-		case SENSOR_CLIFF_FRONT_RIGHT_SIGNAL: return data[231];
-		case SENSOR_CLIFF_RIGHT_SIGNAL: return data[24];
-		case SENSOR_DIGITAL_INPUTS: return data[25];
-		case SENSOR_ANALOG_SIGNAL: return data[26];
-		case SENSOR_CHARGING_SOURCES_AVAILABLE: return data[27];
-		case SENSOR_OI_MODE: return data[28];
-		case SENSOR_SONG_NUMBER: return data[29];
-		case SENSOR_SONG_IS_PLAYING: return data[30];
-		case SENSOR_NUM_STREAM_PACKETS: return data[31];
-		case SENSOR_REQUESTED_VELOCITY: return data[32];
-		case SENSOR_REQUESTED_RADIUS: return data[33];
-		case SENSOR_REQUESTED_RIGHT_VEL: return data[34];
-		case SENSOR_REQUESTED_LEFT_VEL: return data[35];
+	if(data == NULL) return 0;
 
-		//any other input is invalid (including packet groups)
-		default:
-			return INT_MIN;
-	}
+	// Lock this to make sure that getAllSensors() doesn't collide from
+	// another thread. Not entirely clean as the data source (*result) could
+	// vary from different sources, but typically will never be the case.
+	int result = 0;
+	_mutex.lock(); {
+
+		switch (packet)
+		{
+			//all one-byte unsigned sensors
+			case SENSOR_BUMPS_AND_WHEEL_DROPS: result = data[0]; break;
+			case SENSOR_WALL: result = data[1]; break;
+			case SENSOR_CLIFF_LEFT: result = data[2]; break;
+			case SENSOR_CLIFF_FRONT_LEFT: result = data[3]; break;
+			case SENSOR_CLIFF_FRONT_RIGHT: result = data[4]; break;
+			case SENSOR_CLIFF_RIGHT: result = data[5]; break;
+			case SENSOR_VIRTUAL_WALL: result = data[6]; break;
+			case SENSOR_OVERCURRENT: result = data[7]; break;
+			//case SENSOR_UNUSED: result = data[8]; break;
+			//case SENSOR_UNUSED: result = data[9]; break;
+			case SENSOR_INFRARED: result = data[10]; break;
+			case SENSOR_BUTTONS: result = data[11]; break;
+			case SENSOR_DISTANCE: result = data[12]; break;
+			case SENSOR_ANGLE: result = data[13]; break;
+			case SENSOR_CHARGING_STATE: result = data[14]; break;
+			case SENSOR_VOLTAGE: result = data[15]; break;
+			case SENSOR_CURRENT: result = data[16]; break;
+			case SENSOR_BATTERY_TEMP: result = data[17]; break;
+			case SENSOR_BATTERY_CHARGE: result = data[18]; break;
+			case SENSOR_BATTERY_CAPACITY: result = data[19]; break;
+			case SENSOR_WALL_SIGNAL: result = data[20]; break;
+			case SENSOR_CLIFF_LEFT_SIGNAL: result = data[21]; break;
+			case SENSOR_CLIFF_FRONT_LEFT_SIGNAL: result = data[22]; break;
+			case SENSOR_CLIFF_FRONT_RIGHT_SIGNAL: result = data[23]; break;
+			case SENSOR_CLIFF_RIGHT_SIGNAL: result = data[24]; break;
+			case SENSOR_DIGITAL_INPUTS: result = data[25]; break;
+			case SENSOR_ANALOG_SIGNAL: result = data[26]; break;
+			case SENSOR_CHARGING_SOURCES_AVAILABLE: result = data[27]; break;
+			case SENSOR_OI_MODE: result = data[28]; break;
+			case SENSOR_SONG_NUMBER: result = data[29]; break;
+			case SENSOR_SONG_IS_PLAYING: result = data[30]; break;
+			case SENSOR_NUM_STREAM_PACKETS: result = data[31]; break;
+			case SENSOR_REQUESTED_VELOCITY: result = data[32]; break;
+			case SENSOR_REQUESTED_RADIUS: result = data[33]; break;
+			case SENSOR_REQUESTED_RIGHT_VEL: result = data[34]; break;
+			case SENSOR_REQUESTED_LEFT_VEL: result = data[35]; break;
+
+			//any other input is invalid (including packet groups)
+			default: result = 0; break;
+		}
+
+	} _mutex.unlock();
+
+	return result;
 }
 
+/**	\brief	Resets the Create.
+ *
+ * 	Resets the create using the undocumented OPCODE 7. This is useful if the iRobot has docked
+ *  and will not initiate a charge. It is recommended to wait 3 seconds after entering this state.
+ *
+ *	\return		0 if successful or -1 otherwise
+ */
+int COIL::resetOI ()
+{
+	byte cmd[1];
+	cmd[0] = OPCODE_RESET;
 
+	if (cwrite (port, cmd, 1) < 0)
+	{
+		Debug::error("[COIL] could not reset OI: unable to send command");
+		return -1;
+	}
+
+	return 0;
+}
+
+bool COIL::isConnected() {
+	if(port == NULL) 	return false;
+	else				return port->isOpen();
+}
+
+void COIL::disconnect() {
+	port->close();
+}

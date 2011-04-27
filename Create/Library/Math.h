@@ -3,7 +3,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -29,5 +29,8 @@
 #include "Math/trafo2.h"
 #include "Math/vector2.h"
 #include "Math/spline1.h"
+#include "Math/gps.h"
+#include "Math/complex.h"
+#include "Math/frenet.h"
 
 #endif /* MATH_H_ */

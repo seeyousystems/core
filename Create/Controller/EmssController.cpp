@@ -3,7 +3,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -25,210 +25,183 @@
 #include "EmssController.h"
 
 #include "../COIL/COIL.h"
+
 #include "../Library/Debug.h"
 #include "../Library/SleeperThread.h"
 
+//#include "../Watchdog/ThreadMonitorWatchdogAction.h"
+
+//#include "../Map/HeatMap.h"
+
+//#include "../Tracker/Tracker.h"
+
+
 EmssController::EmssController(Create *create, int speed, int interval) :
-	Controller("emss", create, interval) {
+	Controller("EmssController", create, interval) {
 
-	this->speed = speed;
-	yokeX = 0.0;
-	yokeY = 0.0;
-	angleToTurn = 0.0;
-	angleTurned = 0.0;
-	distanceToMove = 0.0;
-	distanceMoved = 0.0;
+	// Init
 	mode = Idle;
+	targetSpeed = speed;
+	lastDebugInfo.restart();
 
+	// Cache all settings
+	debugInfoEnabled = create->boolSetting("Controller_EmssController_DebugInfoEnabled");
+	debugInfoInterval = create->intSetting("Controller_EmssController_DebugInfoInterval_ms");
+	bumperCollisionOffset = create->intSetting("Robot_BumperCollisionOffset_mm");
+	cliffCollisionOpacity = create->doubleSetting("Map_HeatMap_CliffCollisionOpacity");
+	cliffCollisionSize = create->intSetting("Map_HeatMap_CliffCollisionSize_mm");
+	bumperCollisionOpacity = create->doubleSetting("Map_HeatMap_BumperCollisionOpacity");
+	bumperCollisionSize = create->intSetting("Map_HeatMap_BumperCollisionSize_mm");
+	emergencyStopEnabled = create->boolSetting("Controller_EmssController_EmergencyStopEnabled");
+	robotWallSensorRange = create->doubleSetting("Robot_WallSensorRange_mm");
+	robotDiameter = create->intSetting("Robot_Diameter_mm");
+	wallCollisionOpacity = create->doubleSetting("Map_HeatMap_WallCollisionOpacity");
+	wallCollisionSize = create->intSetting("Map_HeatMap_WallCollisionSize_mm");
+	irCollisionOpacity = create->doubleSetting("Map_HeatMap_IRCollisionOpacity");
+	irCollisionSize = create->intSetting("Map_HeatMap_IRCollisionSize_mm");
+	openAreaOpacity = create->doubleSetting("Map_HeatMap_OpenAreaOpacity");
+	openAreaSize = create->intSetting("Map_HeatMap_OpenAreaSize_mm");
 }
 
 EmssController::~EmssController() {
 
 }
 
-void EmssController::run() {
-	// Enter processing loop
-	stopRequested = false;
-	while (stopRequested == false) {
+void EmssController::process() {
 
-		// Get movement...
-		double distanceDelta = coil_getDistance();
-		double angleDelta = coil_getAngle();
+	// Determine wheel speeds
+	if (mode == EmssController::Idle || mode == EmssController::EmergencyStop) {
 
-		// Emit signals for movement tracker
-		emit signalMovedDistance(distanceDelta);
-		emit signalChangedAngle(angleDelta);
+		// Idle mode!
 
-		// Get other sensor data
-		int sharpIRSensor = coil_getAnalogSensorDistance();
-		int bumpsWheelDrop = coil_getBumpsAndWheelDrops();
-
-		// Collision?
-		if (((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT) || ((COIL::BUMPWHEELDROP_BUMP_RIGHT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_RIGHT)) {
-			emit signalCollision();
-			if(create->boolSetting("EMSSCONTROLLER_EMERGENCY_STOP_ENABLED") == true) emergencyStop();
-		}
-
-		// Object detected?
-		if (sharpIRSensor < create->intSetting("EMSSCONTROLLER_SHARP_IR_SENSOR_CUTOFF_VALUE")) {
-			emit signalObjectDetected(sharpIRSensor, 0); // Angle is 0 because it is strait ahead always!
-			if(create->boolSetting("EMSSCONTROLLER_EMERGENCY_STOP_ENABLED") == true && sharpIRSensor < create->intSetting("EMSSCONTROLLER_SHARP_IR_SENSOR_EMERGENCYSTOP_BUFFER_MM")) emergencyStop();
-		}
-
-		// Processs movement
-		distanceMoved += distanceDelta;
-		angleTurned += angleDelta;
-
-		// Determine wheel speeds
-		if (mode == EmssController::Idle || mode == EmssController::EmergencyStop) {
-
-			// Idle mode!
-
-			Lwheel = 0;
-			Rwheel = 0;
-
-		} else if (mode == EmssController::Joystick) {
-
-			// Joystick mode!
-
-			if (this->yokeY == 0) {
-				// Left or right
-				Lwheel = (short) (this->speed * this->yokeX);
-				Rwheel = -(short) (this->speed * this->yokeX);
-
-			} else {
-				// Move forwards backwards
-				Lwheel = (short) (this->speed * this->yokeY);
-				Rwheel = (short) (this->speed * this->yokeY);
-			}
-
-		} else if (mode == EmssController::Move) {
-
-			// Move mode!
-
-			Lwheel = speed;
-			Rwheel = speed;
-
-		} else if (mode == EmssController::Turn) {
-
-			// Turn mode!
-
-			if (angleToTurn > 0) {
-				Lwheel = -speed;
-				Rwheel = +speed;
-			} else {
-				Lwheel = +speed;
-				Rwheel = -speed;
-			}
-			//Debug::print("[EmssController] debug");
+		Lwheel = 0;
+		Rwheel = 0;
 
 
-		} else if (mode == EmssController::WheelDrive) {
+	} else if (mode == EmssController::WheelDrive) {
 
-			// No change, just drive at current wheel values...
-		}
-
-		// Send wheel speeds to COIL
-		if(mode != EmssController::EmergencyStop) coil_directDrive(Lwheel, Rwheel);
-
-
-		//Debug::print("[EmssController] debug");
-		// Sleep our interval...
-		this->msleep(interval);
-
+		// No change, just drive at current wheel values...
 	}
+
+	// Get all the sensor data...
+	if(sensorData) {
+		if(create->coil->getAllSensors(sensorData)) {
+			emit signalSensorDataUpdated();
+		} else {
+			// Return out of the process until Core can process the
+			// signal from COIL. This will help COIL disconnect
+			// faster...
+			return;
+		}
+	}
+
+	// Get movement...
+	double distanceDelta = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_DISTANCE);
+	double angleDelta = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_ANGLE);
+
+	// Emit signals for movement tracker
+	emit signalMovedDistance(distanceDelta);
+	emit signalChangedAngle(angleDelta);
+
+	// Get other sensor data
+	int sharpIRSensor = create->coil->getIRSensorDistanceFromAnalogSignal(create->coil->extractSensorFromData(sensorData,COIL::SENSOR_ANALOG_SIGNAL));
+	int wallIRSensor = create->coil->getWallSensorDistanceFromSignal(create->coil->extractSensorFromData(sensorData,COIL::SENSOR_WALL_SIGNAL));
+	int bumpsWheelDrop = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_BUMPS_AND_WHEEL_DROPS);
+	bool cliffLeft = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_CLIFF_LEFT);
+	bool cliffFrontLeft = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_CLIFF_FRONT_LEFT);
+	bool cliffFrontRight = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_CLIFF_FRONT_RIGHT);
+	bool cliffRight = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_CLIFF_RIGHT);
+	bool isForwardsDirection = (Lwheel > 0 && Rwheel > 0);
+
+	// Drop detected?
+	if (cliffLeft || cliffFrontLeft || cliffFrontRight || cliffRight) {
+		int angle;
+		if (cliffLeft){
+			angle = create->intSetting("Robot_SideCliffSensorPositionAngle");
+			emit signalObjectDetected(bumperCollisionOffset, angle, cliffCollisionOpacity, cliffCollisionSize );
+		} else if (cliffFrontLeft){
+			angle = create->intSetting("Robot_FrontCliffSensorPositionAngle");
+			emit signalObjectDetected(bumperCollisionOffset, angle, cliffCollisionOpacity, cliffCollisionSize );
+		} else if (cliffFrontRight){
+			angle = -create->intSetting("Robot_FrontCliffSensorPositionAngle");
+			emit signalObjectDetected(bumperCollisionOffset, angle, cliffCollisionOpacity, cliffCollisionSize );
+		} else if (cliffRight){
+			angle = -create->intSetting("Robot_SideCliffSensorPositionAngle");
+			emit signalObjectDetected(bumperCollisionOffset, angle, cliffCollisionOpacity, cliffCollisionSize );
+		}
+		if(isForwardsDirection && create->boolSetting("Controller_EmssController_EmergencyStopEnabled")) emergencyStop();
+	}
+
+	// Bumper Collision?
+	if (((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT) || ((COIL::BUMPWHEELDROP_BUMP_RIGHT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_RIGHT)) {
+		int angle = 0;
+		// both bumper?
+		if (((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT) && ((COIL::BUMPWHEELDROP_BUMP_RIGHT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_RIGHT)){
+			angle = 0;
+		}
+		// only left bumper?
+		else if ((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT){
+			angle = 45;
+		}
+		// only right bumper?
+		else if ((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT){
+			angle = -45;
+		}
+		emit signalObjectDetected(bumperCollisionOffset, angle, bumperCollisionOpacity, bumperCollisionSize );
+		if(isForwardsDirection && emergencyStopEnabled) emergencyStop();
+	}
+
+	// Wall detected?
+	if(wallIRSensor < robotWallSensorRange) {
+		emit signalObjectDetected(robotDiameter/2 + wallIRSensor, -90, wallCollisionOpacity, wallCollisionSize ); // Angle is -90 because the sensor points straight out to the right...
+	}
+
+	// Object detected?
+	if (sharpIRSensor < create->intSetting("Robot_SharpIRSensorCutoffValue")) {
+		emit signalObjectDetected(sharpIRSensor, 0, irCollisionOpacity, irCollisionSize ); // Angle is 0 because it is straight ahead always!
+	}
+
+	// Send wheel speeds to COIL
+	if(mode != EmssController::EmergencyStop) {
+		// Set new wheel speed
+		create->coil->directDrive(Lwheel, Rwheel);
+		emit signalChangedWheelSpeed((int)Lwheel, (int)Rwheel);
+
+		// Register on heat map as safe area
+		//create->heatMap->registerHeat(ColorMap::OpenAreaChannel, create->tracker->getX(), create->tracker->getY(), openAreaOpacity, openAreaSize);
+	}
+
+	// Time for debug info?
+	if(debugInfoEnabled && lastDebugInfo.elapsed() > debugInfoInterval) {
+		lastDebugInfo.restart();
+		Debug::print("[EmssController] vl=%1\tvr=%2", Lwheel, Rwheel);
+	}
+
 }
 
 void EmssController::emergencyStop() {
+
+	create->coil->directDrive(0, 0);
 	mode = EmssController::EmergencyStop;
-	coil_directDrive(0, 0);
-}
-
-void EmssController::setYoke(double yokeX, double yokeY) {
-	this->yokeX = yokeX;
-	this->yokeY = yokeY;
-	mode = EmssController::Joystick;
-}
-
-void EmssController::move(int distance, int speed) {
-
-	if(mode == EmssController::EmergencyStop) return;
-
-	// Init
-	this->speed = speed;
-	angleToTurn = 0;
-	angleTurned = 0;
-	distanceToMove = distance;
-	distanceMoved = 0;
-
-	// Move, wait for distance, stop
-	mode = EmssController::Move;
-	waitForDistance();
-	mode = EmssController::Idle;
-
-	//TODO: why is this so inaccurate? What is the timing problem?
-}
-
-void EmssController::waitForDistance() {
-
-	// Differentiate between negative and positive wanted values and check if the current value has not yet crossed the wanted value...
-	while ((distanceToMove > 0 && distanceMoved < distanceToMove) || (distanceToMove < 0 && distanceMoved > distanceToMove)) {
-		SleeperThread::msleep(create->intSetting("EMSSCONTROLLER_WAIT_FOR_EVENT_INTERVAL_DELAY"));
-	}
-}
-
-void EmssController::turn(double angle, int speed) {
-
-	if(mode == EmssController::EmergencyStop) return;
-
-	// Init
-	this->speed = speed;
-	angleToTurn = angle;
-	angleTurned = 0;
-	distanceToMove = 0;
-	distanceMoved = 0;
-
-	// Move, wait for distance, stop
-	mode = EmssController::Turn;
-	waitForAngle();
-	mode = EmssController::Idle;
-}
-
-void EmssController::wheelDrive(short Lwheel, short Rwheel) {
-
-	if(mode == EmssController::EmergencyStop) return;
-
-	this->mode = EmssController::WheelDrive;
-	this->Lwheel = Lwheel;
-	this->Rwheel = Rwheel;
+	emit signalChangedWheelSpeed(0, 0);
+	Debug::warning("[EmssController] emergency stop!");
 
 }
 
-void EmssController::waitForAngle() {
 
-	// Differentiate between negative and positive wanted values and check if the current value has not yet crossed the wanted value...
-	while ((angleToTurn > 0 && angleTurned < angleToTurn) || (angleToTurn < 0 && angleTurned > angleToTurn)) {
-		SleeperThread::msleep(create->intSetting("EMSSCONTROLLER_WAIT_FOR_EVENT_INTERVAL_DELAY"));
-	}
+void EmssController::setWheelSpeed(int Lwheel, int Rwheel) {
 
-}
+	lock.lockForWrite(); {
 
-void EmssController::coil_directDrive(short Lwheel, short Rwheel) {
-	create->coil->directDrive(Lwheel, Rwheel);
-}
+		if(mode == EmssController::EmergencyStop && (Lwheel > 0 || Rwheel > 0) ) {
+			lock.unlock();
+			return;
+		}
 
-double EmssController::coil_getDistance() {
-	return (double) create->coil->getDistance();
-}
+		this->mode = EmssController::WheelDrive;
+		this->Lwheel = (short)Lwheel;
+		this->Rwheel = (short)Rwheel;
 
-double EmssController::coil_getAngle() {
-	return (double) create->coil->getAngle();
-}
+	} lock.unlock();
 
-int EmssController::coil_getAnalogSensorDistance() {
-	return create->coil->getAnalogSensorDistance();
-}
-
-int EmssController::coil_getBumpsAndWheelDrops() {
-	return create->coil->getBumpsAndWheelDrops();
 }

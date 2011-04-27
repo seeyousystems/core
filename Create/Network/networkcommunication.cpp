@@ -4,7 +4,7 @@
 #include "../Library/Debug.h"
 #include "Task/TaskManager.h"
 #include "Task/SeeYouTask.h"
-#include "../MovementTracker/MovementTracker.h"
+#include "../MovementTracker/Tracker.h"
 
 #include "create.h"
 #include "Controller/SeeYouController.h"
@@ -210,43 +210,43 @@ void NetworkCommunication::run()
 							 */
 							if (netPacket.RFID != 0)
 							{
-								create->controller->tags(netPacket.RFID);
-								Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
+								//create->controller->tags(netPacket.RFID);
+								//Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
 							}
 						}
 						//IF OVERRIDE IS ON
-						else if(netPacket.override == 1)
-						{
-							if(netPacket.msg == "left")
-							{
-								create->addTask(new SeeYouTask(this->create, "NetComm_left", 100));
-							}
-							else if(netPacket.msg == "right")
-							{
-								create->addTask(new SeeYouTask(this->create, "NetComm_right", 100));
-							}
-							else if(netPacket.msg == "forward")
-							{
-								Debug::print("[NetworkCommunication] GlobalTag for Vernon: %1", create->controller->getTags());
-								create->addTask(new SeeYouTask(this->create, "NetComm_forward", 100));
-							}
-							else if(netPacket.msg == "backward")
-							{
-								create->addTask(new SeeYouTask(this->create, "NetComm_backward", 100));
-							}
-							else if(netPacket.msg == "tag")
-							{
-								create->addTask(new SeeYouTask(this->create, "NetComm_tag", 100));
-							}
-							else if(netPacket.msg == "stop")
-							{
-								create->addTask(new SeeYouTask(this->create, "NetComm_stop", 100));
-								if (create->taskManager->getTask() != NULL)
-								{
-									create->taskManager->setCurrentTask(Task::Interrupted);
-								}
-							}
-						}
+//						else if(netPacket.override == 1)
+//						{
+//							if(netPacket.msg == "left")
+//							{
+//								create->addTask(new SeeYouTask(this->create, "NetComm_left", 100));
+//							}
+//							else if(netPacket.msg == "right")
+//							{
+//								create->addTask(new SeeYouTask(this->create, "NetComm_right", 100));
+//							}
+//							else if(netPacket.msg == "forward")
+//							{
+//								Debug::print("[NetworkCommunication] GlobalTag for Vernon: %1", create->controller->getTags());
+//								create->addTask(new SeeYouTask(this->create, "NetComm_forward", 100));
+//							}
+//							else if(netPacket.msg == "backward")
+//							{
+//								create->addTask(new SeeYouTask(this->create, "NetComm_backward", 100));
+//							}
+//							else if(netPacket.msg == "tag")
+//							{
+//								create->addTask(new SeeYouTask(this->create, "NetComm_tag", 100));
+//							}
+//							else if(netPacket.msg == "stop")
+//							{
+//								create->addTask(new SeeYouTask(this->create, "NetComm_stop", 100, Task::Immediate));
+//								if (create->taskManager->getTask() != NULL)
+//								{
+//									create->taskManager->setCurrentTask(Task::Interrupted);
+//								}
+//							}
+//						}
 					}
 				}
 
@@ -294,8 +294,8 @@ void NetworkCommunication::run()
          * Update all variables that will be sent to the server.
          */
 
-        serverPacket.x = create->movementTracker->x();
-		serverPacket.y = create->movementTracker->x();
+        serverPacket.x = create->tracker->getX();
+		serverPacket.y = create->tracker->getY();
 
 		///Debug::print("[NetworkCommunication] x: %1, y: %2", serverPacket.x, serverPacket.y);
 

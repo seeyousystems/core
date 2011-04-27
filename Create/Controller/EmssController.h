@@ -1,19 +1,22 @@
 /*
  *  EmssController.h
  *
- *  This Controller is the most important Controller in our project. Its main
- *  function is to receive the differential steering commands and to pass along
- *  sensor data to other Core components. It pass the steering information of
- *  each wheel to COIL and waits for the next process execution. Currently,
- *  certain features from both the Block Drive Controller and Fluid Drive Controller
- *  are implemented within the Emss Controller, creating a set of Emss Controller
- *  modes such as Idle, Move, Turn, Joystick, WheelDrive, EmergencyStop. However,
- *  the only mode not used for diagnostic purposes (i.e. manually driving out of a
- *  corner) is the WheelDrive mode.
+ *  The role of the EmssController is relatively simple: continuously and
+ *  frequently retrieve sensor data and send movement commands while making
+ *  sure to operate safely at all times. The main method for controlling
+ *  the robot with the EmssController implementation is via the
+ *  setWheelSpeed(...) method. This allows a Core module to set the desired
+ *  wheel speed which is then transmitted by the controller to the hardware.
+ *  If an unsafe movement is detected, such as driving down a drop or against
+ *  a wall, the Controller will ignore any further commands until a reversing
+ *  command is desired which is deemed safe. The EmssController will never take
+ *  any counter-action to an unsafe command, it will just ignore the command.
+ *  This delegates the resolving of an unsafe situation to other modules such
+ *  as the Navigation module.
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -37,44 +40,47 @@
 
 #include "Controller.h"
 
+#include <QTime>
+
 class EmssController: public Controller {
 
 	Q_OBJECT
 
 public:
-	short speed	;
-	double yokeX;
-	double yokeY;
+	// Variables
+	enum { Idle, WheelDrive, EmergencyStop } mode;
 	short Lwheel;
 	short Rwheel;
-	double angleToTurn;			// Note: this is double for extra precision during emulation calculation...
-	double angleTurned;			// Note: this is double for extra precision during emulation calculation...
-	double distanceToMove;		// Note: this is double for extra precision during emulation calculation...
-	double distanceMoved;		// Note: this is double for extra precision during emulation calculation...
-	enum { Idle, Move, Turn, Joystick, WheelDrive, EmergencyStop } mode;
+	QTime lastDebugInfo;
+
+	// Configurations / properties / settings
+	bool debugInfoEnabled;
+	int debugInfoInterval;
+	int bumperCollisionOffset;
+	double cliffCollisionOpacity;
+	int cliffCollisionSize;
+	double bumperCollisionOpacity;
+	int bumperCollisionSize;
+	bool emergencyStopEnabled;
+	double robotWallSensorRange;
+	int robotDiameter;
+	double wallCollisionOpacity;
+	int wallCollisionSize;
+	double irCollisionOpacity;
+	int irCollisionSize;
+	double openAreaOpacity;
+	int openAreaSize;
 
 public:
 	EmssController(Create *create, int speed, int interval);
-	virtual ~EmssController();
-	virtual void run();
-	virtual void emergencyStop();
-	void turn(double angle, int speed);
-	void move(int distance, int speed);
-	void wheelDrive(short Lwheel, short Rwheel);
-
-protected:
-	void waitForDistance();
-	void waitForAngle();
-
-public slots:
-	void setYoke(double yokeX, double yokeY);
+	~EmssController();
+	virtual void process();
 
 private:
-	virtual void coil_directDrive(short Lwheel, short Rwheel);
-	virtual double coil_getDistance(); // Note: this is double for extra precision during emulation calculation...
-	virtual double coil_getAngle(); // Note: this is double for extra precision during emulation calculation...
-	virtual int coil_getAnalogSensorDistance();
-	virtual int coil_getBumpsAndWheelDrops();
+	virtual void emergencyStop();
+
+public slots:
+	virtual void setWheelSpeed(int Lwheel, int Rwheel);
 
 };
 

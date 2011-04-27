@@ -1,17 +1,19 @@
 /*
  *  RawMovementTracker.h
  *
- *  The Raw Movement Tracker tracks the robot�s movement by geometrically
- *  interpreting the sensor data sent back from the robot. This method
- *  remains accurate (at least as accurate as the sensor data) as long as
- *  the robot�s movement is linear, meaning that the wheels were not
- *  differentially driven. When a differential steering system is made
- *  use of, the accuracy of the tracker declines as the sensor interval
- *  increases.
+ *  The RawMovementTracker works with the raw sensor data of the robot. This
+ *  means the Controller controls via COIL the robot and determines the
+ *  individual wheel speeds. With every process() of the Controller the sensor
+ *  data is queried and passed along to the Tracker and eventually the
+ *  RawMovementTracker. Within this sensor data is the change in angle and
+ *  the distance driven, which is determined by the onboard-controller of the
+ *  robot. It is this data which the RawMovementTracker reacts to and performs
+ *  its localization via the methods registerChangedAngle(...) and
+ *  registerMovedDistance(...).
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -35,22 +37,19 @@
 
 #include "MovementTracker.h"
 
+#include <QMutex>
+
 class RawMovementTracker: public MovementTracker {
 
 Q_OBJECT
-
-private:
 
 
 public:
 	RawMovementTracker(Create *create, long x, long y, double rotation);
 	virtual~ RawMovementTracker();
-
-public slots:
 	virtual void registerMovedDistance(double distance);
 	virtual void registerChangedAngle(double angle);
-	virtual void registerCollision();
-	virtual void registerObjectDetected(double distance, double angle);
+	virtual void registerChangedWheelSpeed(int, int);
 };
 
 #endif /* RAWMOVEMENTTRACKER_H_ */

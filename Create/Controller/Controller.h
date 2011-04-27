@@ -1,20 +1,19 @@
 /*
  *  Controller.h
  *
- *  The abstract Controller class is the base of fully functional Controllers.
- *  It provides the virtual methods run() and emergencyStop() which must be
- *  implemented by the child classes. The process routine of the Core Controller
- *  is the run() method and must only exit if the variable stopRequested is true.
- *  Currently, there are three different Controller implementations: Block Drive
- *  Controller, Fluid Drive Controller, and Emss Controller. Only the later is
- *  meant for real use, the others are for testing purposes only. In addition
- *  to sending movement commands to COIL, the Controller is also responsible for
- *  passing along sensor data to other components such as the Movement Tracker. This
- *  is realized in the form of Qt signals.
+ *  The Controller module is responsible for safely controlling and maneuvering
+ *  the hardware. It sends the control commands to COIL which in turn translates
+ *  and transmits the commands over the serial interface. The Controller module
+ *  is also responsible for receiving sensory data and providing it to other
+ *  modules within the emss Core, such as the Tracker module and various Maps.
+ *  The Controller class inherits from CoreThread and runs in its own thread.
+ *  Implementations of the Controller class must implement the methods process()
+ *  and setWheelSpeed(�). The method emergencyStop() must be implemented to
+ *  handle an emergency stop in further detail.
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -36,47 +35,34 @@
 #ifndef CONTROLLER_H_
 #define CONTROLLER_H_
 
-
-#include <QObject>
-#include <QThread>
 #include <QQueue>
+#include <QReadWriteLock>
 
-#include "../create.h"
+#include "../CoreThread.h"
+#include "../Library/Math.h"
 
-//TODO: generalize methods move() and turn() so that these silly casts are not required..
-//TODO: also generalize wheeldrive etc...!
+class ThreadMonitorWatchdogAction;
 
-class Controller : public QThread
+class Controller : public CoreThread
 {
 	Q_OBJECT
 
 protected:
 	bool stopRequested;
+	ThreadMonitorWatchdogAction *watchdogAction;
+	QReadWriteLock lock;
 
 public:
-	Create *create;
-	QString name;
 	int interval;
-	int globaltag;
-
-	 typedef struct
-	{
-		int id;
-		double x;
-		double y;
-	} RFID_DB;
-	//RFID_DB *predefinedDB;
-
-	vector <RFID_DB> predefinedDB;
+	int targetSpeed; // The target speed used by the controller and other components (such as Weights)
+	int *sensorData; // Pointer to sensor data which is 36*sizeof(int)
 
 public:
 	Controller(QString name, Create *create, int interval);
 	virtual ~Controller();
-	virtual void run() = 0;
-	virtual void emergencyStop();
-	virtual void regularStop();
-	virtual void tags(int tagnumber);	//Added by Hanam Apr21st
-	virtual int getTags();
+	virtual void process() = 0; // Process method for thread, must be implemented by sub-class
+	virtual void emergencyStop() = 0; // Public emergencyStop method, must be implemented by sub-class
+	void run();
 	void stop();
 	void start(QThread::Priority priority);
 
@@ -85,8 +71,13 @@ signals:
 	void signalMovedDistance(double distance);
 	void signalChangedAngle(double angle);
 	void signalCollision();
-	void signalObjectDetected(double distance, double angle);
+	void signalObjectDetected(double distance, double angle, double opacity, int size);
+	void signalSensorDataUpdated();
+	void signalChangedWheelSpeed(int, int);
 
+public slots:
+	virtual void setWheelSpeed(int Lwheel, int Rwheel) = 0; // Sets the current wheel speed, must be implemented by sub-class
+	virtual void setTargetSpeed(int speed); // Sets the controllers target speed, may be implemented by sub-class
 };
 
 #endif /* CONTROLLER_H_ */

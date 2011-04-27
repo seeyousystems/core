@@ -4,6 +4,7 @@
 
 #include "Library/Debug.h"
 #include "Library/Util.h"
+#include "Library/Joystick2D.h"
 
 #include "create.h"
 
@@ -17,10 +18,7 @@
 #include "Task/Task.h"
 #include "Task/TaskManager.h"
 #include "Task/TestMoveTask.h"
-#include "Task/SeeYouTask.h"
-#include "Task/StraightPathMoveTask.h"
-
-//#include "TestMoveTask.h"
+//#include "Task/SeeYouTask.h"
 
 
 Interface::Interface(QWidget *parent)
@@ -54,12 +52,9 @@ Interface::Interface(QWidget *parent)
 	connect(sliderSpeed, SIGNAL(valueChanged(int)), lcdSpeed, SLOT(display(int)));
 	connect(sliderAngle, SIGNAL(valueChanged(int)), lcdAngle, SLOT(display(int)));
 
-	// LCD's for sensors connections
-//	connect(create->arduinoController, SIGNAL(create->arduinoController->leftSensorSignal(int)), lcdLeft, SLOT(display(int)));
-//	connect(create->arduinoController, SIGNAL(upperLeftSensorSignal(int)), lcdUpperLeft, SLOT(display(int)));
-//	connect(create->arduinoController, SIGNAL(frontSensorSignal(int)), lcdFront, SLOT(display(int)));
-//	connect(create->arduinoController, SIGNAL(upperRightSensorSignal(int)), lcdUpperRight, SLOT(display(int)));
-//	connect(create->arduinoController, SIGNAL(rightSensorSignal(int)), lcdRight, SLOT(display(int)));
+	//Weight Editor
+	connect(this, SIGNAL(createConnectionChanged(Create*)), weightEditor, SLOT(registerCore(Create*)));
+
 
 	// Set default values
 	sliderDistance->setRange(0, 1000);
@@ -86,8 +81,8 @@ void Interface::connectDisconnect()
 	{
 		create = new Create();
 		connect(btnAbort, SIGNAL(clicked()), create, SLOT(abort()));
-		//connect(create, SIGNAL(createConnected()), this, SLOT(createConnected()));
-		//connect(create, SIGNAL(createDisconnected()), this, SLOT(createDisconnected()));
+		connect(create, SIGNAL(createConnected()), this, SLOT(createConnected()));
+		connect(create, SIGNAL(createDisconnected()), this, SLOT(createDisconnected()));
 	}
 	// Connect or disconnect...
 	if (create->isConnected() == false) {
@@ -98,7 +93,7 @@ void Interface::connectDisconnect()
 
 		// Init the create
 		if(create->connect(cbPort->currentText(), true)) {
-			create->run();
+			create->start();
 		}
 
 		if(create->controller->name == "emss") {
@@ -148,7 +143,7 @@ void Interface::connectDisconnect()
 void Interface::createConnected()
 {
 	// Connections...
-	//connect(joystick, SIGNAL(yokeChanged(double,double)), create->joystick, SLOT(setYoke(double,double)));
+	connect(joystick, SIGNAL(yokeChanged(double,double)), create->joystick, SLOT(setYoke(double,double)));
 	//connect(sliderSpeed, SIGNAL(valueChanged(int)), create->controller, SLOT(setTargetSpeed(int)));
 	//create->controller->setTargetSpeed(sliderSpeed->value());
 
@@ -158,7 +153,7 @@ void Interface::createConnected()
 	//btnAbort->setEnabled();
 	//btnRefreshSensors->setEnabled(true);
 
-	//emit createConnectionChanged(create);
+	emit createConnectionChanged(create);
 	Debug::print("[Interface] connected");
 }
 
@@ -170,55 +165,55 @@ void Interface::createDisconnected()
 	btnAbort->setEnabled(false);
 	//btnRefreshSensors->setEnabled(false);
 
-	//emit createConnectionChanged(create);
+	emit createConnectionChanged(create);
 	Debug::print("[Interface] disconnected");
 }
 
 void Interface::refreshSensors() {
-	txtSensorData->clear();
-	int* data = create->coil->getAllSensors();
-	if(data != NULL) {
-
-		txtSensorData->append(QString("BUMPS_AND_WHEEL_DROPS:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BUMPS_AND_WHEEL_DROPS)));
-		txtSensorData->append(QString("WALL:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_WALL)));
-		txtSensorData->append(QString("CLIFF_LEFT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_LEFT)));
-		txtSensorData->append(QString("CLIFF_FRONT_LEFT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_LEFT)));
-		txtSensorData->append(QString("CLIFF_FRONT_RIGHT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_RIGHT)));
-		txtSensorData->append(QString("CLIFF_RIGHT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_RIGHT)));
-		txtSensorData->append(QString("VIRTUAL_WALL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_VIRTUAL_WALL)));
-		txtSensorData->append(QString("OVERCURRENT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_OVERCURRENT)));
-		txtSensorData->append(QString("INFRARED:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_INFRARED)));
-		txtSensorData->append(QString("BUTTONS:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BUTTONS)));
-		txtSensorData->append(QString("DISTANCE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_DISTANCE)));
-		txtSensorData->append(QString("ANGLE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_ANGLE)));
-		txtSensorData->append(QString("CHARGING_STATE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CHARGING_STATE)));
-		txtSensorData->append(QString("VOLTAGE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_VOLTAGE)));
-		txtSensorData->append(QString("CURRENT:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CURRENT)));
-		txtSensorData->append(QString("BATTERY_TEMP:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_TEMP)));
-		txtSensorData->append(QString("BATTERY_CHARGE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CHARGE)));
-		txtSensorData->append(QString("BATTERY_CAPACITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CAPACITY)));
-		txtSensorData->append(QString("WALL_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_WALL_SIGNAL)));
-		txtSensorData->append(QString("CLIFF_LEFT_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_LEFT_SIGNAL)));
-		txtSensorData->append(QString("CLIFF_FRONT_LEFT_SIGNAL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_LEFT_SIGNAL)));
-		txtSensorData->append(QString("CLIFF_FRONT_RIGHT_SIGNAL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_RIGHT_SIGNAL)));
-		txtSensorData->append(QString("CLIFF_RIGHT_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_RIGHT_SIGNAL)));
-		txtSensorData->append(QString("DIGITAL_INPUTS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_DIGITAL_INPUTS)));
-		txtSensorData->append(QString("ANALOG_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_ANALOG_SIGNAL)));
-		txtSensorData->append(QString("CHARGING_SOURCES_AVAILABLE:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CHARGING_SOURCES_AVAILABLE)));
-		txtSensorData->append(QString("OI_MODE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_OI_MODE)));
-		txtSensorData->append(QString("SONG_NUMBER:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_SONG_NUMBER)));
-		txtSensorData->append(QString("SONG_IS_PLAYING:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_SONG_IS_PLAYING)));
-		txtSensorData->append(QString("NUM_STREAM_PACKETS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_NUM_STREAM_PACKETS)));
-		txtSensorData->append(QString("REQUESTED_VELOCITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_VELOCITY)));
-		txtSensorData->append(QString("REQUESTED_RADIUS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_RADIUS)));
-		txtSensorData->append(QString("REQUESTED_RIGHT_VEL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_RIGHT_VEL)));
-		txtSensorData->append(QString("REQUESTED_LEFT_VEL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_LEFT_VEL)));
-		txtSensorData->append(QString("BATTERY_CHARGE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CHARGE)));
-		txtSensorData->append(QString("BATTERY_CAPACITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CAPACITY)));
-
-		delete data;
-
-	}
+//	txtSensorData->clear();
+//	int* data = create->coil->getAllSensors();
+//	if(data != NULL) {
+//
+//		txtSensorData->append(QString("BUMPS_AND_WHEEL_DROPS:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BUMPS_AND_WHEEL_DROPS)));
+//		txtSensorData->append(QString("WALL:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_WALL)));
+//		txtSensorData->append(QString("CLIFF_LEFT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_LEFT)));
+//		txtSensorData->append(QString("CLIFF_FRONT_LEFT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_LEFT)));
+//		txtSensorData->append(QString("CLIFF_FRONT_RIGHT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_RIGHT)));
+//		txtSensorData->append(QString("CLIFF_RIGHT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_RIGHT)));
+//		txtSensorData->append(QString("VIRTUAL_WALL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_VIRTUAL_WALL)));
+//		txtSensorData->append(QString("OVERCURRENT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_OVERCURRENT)));
+//		txtSensorData->append(QString("INFRARED:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_INFRARED)));
+//		txtSensorData->append(QString("BUTTONS:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BUTTONS)));
+//		txtSensorData->append(QString("DISTANCE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_DISTANCE)));
+//		txtSensorData->append(QString("ANGLE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_ANGLE)));
+//		txtSensorData->append(QString("CHARGING_STATE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CHARGING_STATE)));
+//		txtSensorData->append(QString("VOLTAGE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_VOLTAGE)));
+//		txtSensorData->append(QString("CURRENT:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CURRENT)));
+//		txtSensorData->append(QString("BATTERY_TEMP:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_TEMP)));
+//		txtSensorData->append(QString("BATTERY_CHARGE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CHARGE)));
+//		txtSensorData->append(QString("BATTERY_CAPACITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CAPACITY)));
+//		txtSensorData->append(QString("WALL_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_WALL_SIGNAL)));
+//		txtSensorData->append(QString("CLIFF_LEFT_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_LEFT_SIGNAL)));
+//		txtSensorData->append(QString("CLIFF_FRONT_LEFT_SIGNAL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_LEFT_SIGNAL)));
+//		txtSensorData->append(QString("CLIFF_FRONT_RIGHT_SIGNAL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_RIGHT_SIGNAL)));
+//		txtSensorData->append(QString("CLIFF_RIGHT_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_RIGHT_SIGNAL)));
+//		txtSensorData->append(QString("DIGITAL_INPUTS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_DIGITAL_INPUTS)));
+//		txtSensorData->append(QString("ANALOG_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_ANALOG_SIGNAL)));
+//		txtSensorData->append(QString("CHARGING_SOURCES_AVAILABLE:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CHARGING_SOURCES_AVAILABLE)));
+//		txtSensorData->append(QString("OI_MODE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_OI_MODE)));
+//		txtSensorData->append(QString("SONG_NUMBER:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_SONG_NUMBER)));
+//		txtSensorData->append(QString("SONG_IS_PLAYING:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_SONG_IS_PLAYING)));
+//		txtSensorData->append(QString("NUM_STREAM_PACKETS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_NUM_STREAM_PACKETS)));
+//		txtSensorData->append(QString("REQUESTED_VELOCITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_VELOCITY)));
+//		txtSensorData->append(QString("REQUESTED_RADIUS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_RADIUS)));
+//		txtSensorData->append(QString("REQUESTED_RIGHT_VEL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_RIGHT_VEL)));
+//		txtSensorData->append(QString("REQUESTED_LEFT_VEL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_LEFT_VEL)));
+//		txtSensorData->append(QString("BATTERY_CHARGE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CHARGE)));
+//		txtSensorData->append(QString("BATTERY_CAPACITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CAPACITY)));
+//
+//		delete data;
+//
+//	}
 
 }
 
@@ -230,11 +225,11 @@ void Interface::focusOnPoint(long x, long y){
 
 void Interface::killSwitchFunction()
 {
-	if (create->taskManager->getTask() != NULL)
-	{
-		create->taskManager->setCurrentTask(Task::Interrupted);
-		Debug::print("[Interface] Interrupted");
-	}
+//	if (create->taskManager->getTask() != NULL)
+//	{
+//		create->taskManager->setCurrentTask(Task::Interrupted);
+//		Debug::print("[Interface] Interrupted");
+//	}
 }
 
 void Interface::currentTask(int index)
@@ -242,46 +237,48 @@ void Interface::currentTask(int index)
 	Debug::print("[Interface] current index is: %1 name: %2", index, cbTask->itemText(index));
 	QString task = cbTask->itemText(index);
 	if(task == "Backwards") {
-		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+//		create->taskManager->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
 	}
-	else if(task == "Rotate 90") {
-		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
-	}
-	else if(task == "Rotate -90")
-	{
-			create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
-	}
-	else if(task == "Rotate 360") {
-		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
-	}
-	else if(task == "Straight Path Move") {
-		//create->addTask(new StraightPathMoveTask(create,0,100 * create->scale, this->sliderSpeed->value()));
-		create->addTask(new StraightPathMoveTask(create,0,1000, this->sliderSpeed->value()));
-//		if(create->vffAI->hist.sensorAngle > 60 && create->vffAI->hist.sensorAngle < 120)
-//		{
-//			//mode = SeeYouController::EmergencyStop;
-//
-//			create->boolSetting("SEEYOUCONTROLLER_EMERGENCY_STOP_ENABLED") == true;
-//
-//			create->controller->emergencyStop();
-//		}
-	}
-	else if(task == "Wall Follower") {
-		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
-	}
+//	else if(task == "Rotate 90") {
+//		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+//	}
+//	else if(task == "Rotate -90")
+//	{
+//			create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+//	}
+//	else if(task == "Rotate 360") {
+//		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+//	}
+//	else if(task == "Straight Path Move") {
+//		//create->addTask(new StraightPathMoveTask(create,0,100 * create->scale, this->sliderSpeed->value()));
+////		create->addTask(new StraightPathMoveTask(create,0,1000, this->sliderSpeed->value()));
+////		if(create->vffAI->hist.sensorAngle > 60 && create->vffAI->hist.sensorAngle < 120)
+////		{
+////			//mode = SeeYouController::EmergencyStop;
+////
+////			create->boolSetting("SEEYOUCONTROLLER_EMERGENCY_STOP_ENABLED") == true;
+////
+////			create->controller->emergencyStop();
+////		}
+//	}
+//	else if(task == "Wall Follower") {
+//		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+//	}
 	else if(task == "Straight")
 	{
-		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
+		create->taskManager->addTask(new TestMoveTask(create, task, this->sliderSpeed->value()));
+
+
 	}
-	else if(task == "Stop")
-	{
-		//create->taskManager->stopRequested = true;
-		//Debug::print("[Interface] current status %l", create->taskManager->currentTask->status);
-		//create->taskManager->currentTask->status = Task::Interrupted;
-		if (create->taskManager->getTask() != NULL)
-		{
-			create->taskManager->setCurrentTask(Task::Interrupted);
-		}
+//	else if(task == "Stop")
+//	{
+//		//create->taskManager->stopRequested = true;
+//		//Debug::print("[Interface] current status %l", create->taskManager->currentTask->status);
+//		//create->taskManager->currentTask->status = Task::Interrupted;
+//		if (create->taskManager->getTask() != NULL)
+//		{
+//			create->taskManager->setCurrentTask(Task::Interrupted);
+//		}
 
 
 //		for(int i = 0; i < create->taskManager->tasks->count(); i++) {
@@ -302,7 +299,7 @@ void Interface::currentTask(int index)
 		//create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value(), Task::Immediate));
 
 
-	}
+//	}
 }
 
 QGroupBox *Interface::createSensorExclusiveGroup()
@@ -365,30 +362,15 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 	exclusiveBox->setCheckable(false);
 	exclusiveBox->setChecked(true);
 
+	// Weight Editor
+	weightEditor = new WeightEditor(NULL);
+
+
 	// Joystick
 	joystick = new JoystickView(JoystickView::JOYSTICK_MODE_FREE);
 	joystick->acceleration = JoystickView::JOYSTICK_ACCELERATION_SLOWDOWN;
 	joystickFluidController = new JoystickView(JoystickView::JOYSTICK_MODE_FREE);
 	joystickFluidController->acceleration = JoystickView::JOYSTICK_ACCELERATION_SLOWDOWN;
-
-	// Sliders
-//	sliderDistance = new QSlider();
-//	sliderSpeed = new QSlider(Qt::Horizontal);
-//	sliderAngle = new QSlider(Qt::Horizontal);
-
-	// LCD
-//	lcdAngle = new QLCDNumber();
-//	lcdAngle->setFrameStyle(QFrame::NoFrame);
-//	lcdAngle->setSegmentStyle(QLCDNumber::Flat);
-//	lcdDistance = new QLCDNumber();
-//	lcdDistance->setFrameStyle(QFrame::NoFrame);
-//	lcdDistance->setSegmentStyle(QLCDNumber::Flat);
-//	lcdSpeed = new QLCDNumber();
-//	lcdSpeed->setFrameStyle(QFrame::NoFrame);
-//	lcdSpeed->setSegmentStyle(QLCDNumber::Flat);
-
-	// CheckBox
-//	checkNegativeAngle = new QCheckBox("Negative Angle");
 
 	// PushButtons
 	btnConnect = new QPushButton(QIcon(":connect"), "Connect");
@@ -408,24 +390,16 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 	cbPort->addItem("/dev/ttyUSB2");
 	cbPort->addItem("/dev/ttyUSB3");
 
-//	QHBoxLayout *hbox = new QHBoxLayout;
-//	hbox->addWidget(new QLabel("Angle:"), 1,0);
-//	hbox->addWidget(checkNegativeAngle);
-
 	QVBoxLayout *vbox = new QVBoxLayout;
 	vbox->addWidget(joystick);
-//	vbox->addWidget(new QLabel("Speed (mm per second:)"), 4,0);
-//	vbox->addWidget(lcdSpeed);
-//	vbox->addWidget(sliderSpeed);
-//	vbox->addLayout(hbox);
-//	vbox->addWidget(lcdAngle);
-//	vbox->addWidget(sliderAngle);
+
 	vbox->addWidget(btnConnect);
 	vbox->addWidget(btnAbort);
 	vbox->addWidget(cbPort);
 	vbox->addWidget(killSwitchButton);
+	vbox->addWidget(weightEditor);
 	//vbox->addWidget(cbTask);
-	//vbox->addStretch(1);
+	vbox->addStretch(1);
 	exclusiveBox->setLayout(vbox);
 
 	return exclusiveBox;
@@ -516,4 +490,3 @@ QGroupBox *Interface::createButtonsExclusiveGroup()
 	groupBox->setChecked(true);
 	return groupBox;
 }
-

@@ -46,56 +46,56 @@ void FluidDriveController::run() {
 	stopRequested = false;
 	while (stopRequested == false) {
 
-		// Get movement
-		int distanceDelta = create->coil->getDistance();
-		int angleDelta = create->coil->getAngle();
-
-		// Emit signals for movement tracker
-		emit signalMovedDistance(distanceDelta);
-		emit signalChangedAngle(angleDelta);
-
-		// Get other sensor data
-		int sharpIRSensor = create->coil->getAnalogSensorDistance();
-		int bumpsWheelDrop = create->coil->getBumpsAndWheelDrops();
-
-		// Collision?
-		if (((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT) || ((COIL::BUMPWHEELDROP_BUMP_RIGHT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_RIGHT)) {
-			emit signalCollision();
-			if (yokeY > 0) yokeY = 0.0;
-			yokeX = 0.0;
-		}
-
-		// Object detected?
-		if (sharpIRSensor < 500) {
-			emit signalObjectDetected(sharpIRSensor, 0); // Angle is 0 because it is strait ahead always!
-		}
-
-		// Processs movement
-		// Basically here we have a x yoke and y yoke value ranging from -1.0 to 1.0
-		// and we want to translate that to the speed of each servo (left and right)
-		// relative to the (max)speed given in the constructor...
-		short Lwheel = 0;
-		short Rwheel = 0;
-		short speed = 0;
-		if (this->yokeY <= 0.06 && this->yokeY >= -0.06) {
-			speed = 150;
-			Lwheel = -(short)speed * (this->yokeX);
-			Rwheel =  (short)speed * (this->yokeX);
-		}
-		else {
-			short speed = (short) (this->speed * this->yokeY);
-			Lwheel = speed - (short)(speed * this->yokeX);
-			Rwheel = speed + (short)(speed * this->yokeX);
-
-			// Fix
-			if (Lwheel > this->speed) Lwheel = this->speed;
-			if (Rwheel > this->speed) Rwheel = this->speed;
-			if (Lwheel < -this->speed) Lwheel = -this->speed;
-			if (Rwheel < -this->speed) Rwheel = -this->speed;
-		}
-		create->coil->directDrive(Lwheel, Rwheel);
-
-		Debug::print("[FluidDriveController] Direct drive %1 %2", Lwheel, Rwheel);
+//		// Get movement
+//		int distanceDelta = create->coil->getDistance();
+//		int angleDelta = create->coil->getAngle();
+//
+//		// Emit signals for movement tracker
+//		emit signalMovedDistance(distanceDelta);
+//		emit signalChangedAngle(angleDelta);
+//
+//		// Get other sensor data
+//		int sharpIRSensor = create->coil->getAnalogSensorDistance();
+//		int bumpsWheelDrop = create->coil->getBumpsAndWheelDrops();
+//
+//		// Collision?
+//		if (((COIL::BUMPWHEELDROP_BUMP_LEFT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_LEFT) || ((COIL::BUMPWHEELDROP_BUMP_RIGHT & bumpsWheelDrop) == COIL::BUMPWHEELDROP_BUMP_RIGHT)) {
+//			emit signalCollision();
+//			if (yokeY > 0) yokeY = 0.0;
+//			yokeX = 0.0;
+//		}
+//
+//		// Object detected?
+//		if (sharpIRSensor < 500) {
+//			emit signalObjectDetected(sharpIRSensor, 0); // Angle is 0 because it is strait ahead always!
+//		}
+//
+//		// Processs movement
+//		// Basically here we have a x yoke and y yoke value ranging from -1.0 to 1.0
+//		// and we want to translate that to the speed of each servo (left and right)
+//		// relative to the (max)speed given in the constructor...
+//		short Lwheel = 0;
+//		short Rwheel = 0;
+//		short speed = 0;
+//		if (this->yokeY <= 0.06 && this->yokeY >= -0.06) {
+//			speed = 150;
+//			Lwheel = -(short)speed * (this->yokeX);
+//			Rwheel =  (short)speed * (this->yokeX);
+//		}
+//		else {
+//			short speed = (short) (this->speed * this->yokeY);
+//			Lwheel = speed - (short)(speed * this->yokeX);
+//			Rwheel = speed + (short)(speed * this->yokeX);
+//
+//			// Fix
+//			if (Lwheel > this->speed) Lwheel = this->speed;
+//			if (Rwheel > this->speed) Rwheel = this->speed;
+//			if (Lwheel < -this->speed) Lwheel = -this->speed;
+//			if (Rwheel < -this->speed) Rwheel = -this->speed;
+//		}
+//		create->coil->directDrive(Lwheel, Rwheel);
+//
+//		Debug::print("[FluidDriveController] Direct drive %1 %2", Lwheel, Rwheel);
 
 		// Sleep our interval...
 		this->msleep(interval);
@@ -104,8 +104,8 @@ void FluidDriveController::run() {
 }
 
 void FluidDriveController::setYoke(double yokeX, double yokeY) {
-	this->yokeX = yokeX;
-	this->yokeY = yokeY;
-	Debug::print("[FluidDriveController] Direct drive %1 %2", yokeX, yokeY);
+//	this->yokeX = yokeX;
+//	this->yokeY = yokeY;
+//	Debug::print("[FluidDriveController] Direct drive %1 %2", yokeX, yokeY);
 
 }

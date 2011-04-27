@@ -24,6 +24,8 @@
 #include "JoystickView.h"
 #include "Library/Debug.h"
 
+#include "GUI/WeightEditor.h"
+
 class QPushButton;
 
 class Interface : public QWidget
@@ -91,6 +93,9 @@ private:
 	QGroupBox *createBlockControllerExclusiveGroup();
 	QGroupBox *createSensorExclusiveGroup();
 
+	WeightEditor *weightEditor;
+
+
 
 public:
 	Create *create;
@@ -114,6 +119,9 @@ public slots:
 	void focusOnPoint(long x, long y);
 
 	void killSwitchFunction();
+
+signals:
+	void createConnectionChanged(Create *create); // Emitted when core connects/disconnects.
 
 };
 

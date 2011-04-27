@@ -108,7 +108,7 @@ void TaskEditor::showTask(QModelIndex index) {
 	}
 	else if(task->status == Task::Finished) status = "Finished";
 	else if(task->status == Task::Interrupted) status = "Interrupted";
-	txtTaskInfo->setText(QString("ID:\t%1\nTask:\t%2\nStatus:\t%3\nInterval:\t%4\n%5").arg(index.row()).arg(task->name).arg(status).arg(task->interval).arg(task->description()));
+//	txtTaskInfo->setText(QString("ID:\t%1\nTask:\t%2\nStatus:\t%3\nInterval:\t%4\n%5").arg(index.row()).arg(task->name).arg(status).arg(task->interval).arg(task->description()));
 }
 
 void TaskEditor::stopTask(){

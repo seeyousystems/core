@@ -13,7 +13,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -36,11 +36,15 @@
 #define SPLINE1_H_
 
 #include <vector>
+#include <iterator>
+
+#include <stdio.h>
+#include <assert.h>
+
 
 //	Typedefs and defines
-typedef enum SplineKernel { SplineKernelBruenner, SplineKernelNRNatural, SplineKernelStoer };
+typedef enum SplineKernel { SplineKernelBruenner, SplineKernelNRNatural, SplineKernelStoer, SplineKernelWirth };
 
-#define INVALID_KERNEL_EXCEPTION 500;
 
 template <class real>
 class Spline1T
@@ -56,13 +60,15 @@ class Spline1T
 		std::vector<real> a;
 		std::vector<real> b;
 		std::vector<real> c;
+		//std::vector<real> d;
 
 		// Additional NR kernel data...
 		std::vector<real> y2;
 
-		// Additional Stoer kernel data
+		// Additional start/end restrictions
 		real dy0;
 		real dyn;
+		bool constraintsSet;
 
 		SplineKernel kernel;
 		bool needsCalculation;
@@ -76,6 +82,7 @@ class Spline1T
     	void setKernel (SplineKernel kernel);
     	SplineKernel getKernel ();
     	void setConstraints (real dy0, real dyn);
+    	void unsetConstraints ();
 
     	//  values
 
@@ -114,6 +121,7 @@ Spline1T <real> :: Spline1T ()
 	kernel = SplineKernelBruenner; // Default kernel
 	dy0 = 0;
 	dyn = 0;
+	constraintsSet = false;
 }
 
 template <class real>
@@ -124,6 +132,7 @@ Spline1T <real> :: Spline1T (SplineKernel kernel)
 	this->kernel = kernel;
 	dy0 = 0;
 	dyn = 0;
+	constraintsSet = false;
 }
 
 template <class real>
@@ -141,6 +150,15 @@ template <class real>
 void Spline1T <real> :: setConstraints (real dy0, real dyn) {
 	this->dy0 = dy0;
 	this->dyn = dyn;
+	constraintsSet = true;
+	needsCalculation = true; // Set dirty
+}
+
+template <class real>
+void Spline1T <real> :: unsetConstraints () {
+	this->dy0 = 0;
+	this->dyn = 0;
+	constraintsSet = false;
 	needsCalculation = true; // Set dirty
 }
 
@@ -305,8 +323,98 @@ void Spline1T <real> :: calculate ()
 			c[i] = (data[i+1] - data[i]) - (2.0 * M[i] + M[i+1]) / 6.0;
 		}
 
-	} else {
-		throw INVALID_KERNEL_EXCEPTION;
+	} else if (kernel == SplineKernelWirth) {
+
+		// Calculations based on Joseph Stoer's "Numerische Mathematik 1"
+		// and Dr. Joachim Wirth's input
+
+
+		//  number of intervals
+		int i;
+		int np = data.size();
+		int ni = np - 1;
+
+		//  coeffs
+		a = std::vector<real>(np);
+		b = std::vector<real>(np);
+		c = std::vector<real>(np);
+		std::vector<real> dx = std::vector<real>(ni);
+		std::vector<real> dy = std::vector<real>(ni);
+
+		//  calculate x values, x differences, and y differences
+		for (i = 0; i < ni; ++i)
+		{
+			dx [i] = i+1 - i;
+			dy [i] = (data [i + 1] - data [i]) / dx [i];
+
+			assert(dx[i] != 0);
+			assert(dy[i] != 0);
+		}
+
+
+		//  solve system of linear equations
+		std::vector<real> q (np + 1);
+		std::vector<real> u (np + 1);
+
+		// Calculate d0
+		real lambda0;
+		if (constraintsSet) 	lambda0 = 0;
+		else					lambda0 = 1;
+		q [0] = - lambda0 / 2;
+		u [0] = 3 / (1 - 0) * (dy [0] - dy0);
+
+		// Calculate d
+		for (i = 1; i < ni; ++i)
+		{
+			real dd = (i+1) - (i-1); //x [i + 1] - x [i - 1];
+			real lambda = dx [i] / dd;
+			real mu = 1 - lambda;
+			real d = 6.0 * (dy [i] - dy [i - 1]) / dd;
+
+			real p = mu * q [i - 1] + 2.0;
+			q [i] = - lambda / p;
+			u [i] = (d - mu * u [i - 1]) / p;
+		}
+
+		// Calculate dn
+		real ddn = (ni + 1) - (ni - 1);
+		real lambdan = dx [ni] / ddn;
+		real mun;
+		real dn;
+		if (constraintsSet) {
+			mun = 0;
+			dn = 6.0 * (dy [ni] - dy [ni - 1]) / ddn;
+		} else {
+			mun = 1;
+			dn = 6.0 / (ni - (ni - 1)) * (dyn - dy [ni]);
+		}
+
+		real pn = mun * q [ni - 1] + 2.0;
+		q [ni] = - lambdan / pn;
+		u [ni] = (dn - mun * u [i - 1]) / pn;
+
+
+		// Back calculate...
+		std::vector<real> m (np + 1);
+		m [np] = u [np];
+		for (i = ni; i >= 0; --i)
+			m [i] = q [i] * m [i + 1] + u [i];
+
+		//  calculate coefficients of polynomials
+		for (i = 0; i < ni; ++i) {
+			a[i] = (m [i + 1] - m [i]) / (6.0 * dx [i]);
+			b[i] = m [i] / 2.0;
+			c[i] = dy [i] - dx [i] * (2.0 * m [i] + m [i + 1]) / 6.0;
+		}
+
+//		// Calculate rest coefficients
+//		for(int i = 0; i < ni; i++) {
+//			a[i] = (m[i+1] - m[i]) / 6.0;
+//			b[i] = m[i] / 2.0;
+//			c[i] = (data[i+1] - data[i]) - (2.0 * m[i] + m[i+1]) / 6.0;
+//		}
+
+
 	}
 
 	needsCalculation = false;
@@ -333,8 +441,15 @@ real Spline1T <real> :: getValue(int i, real t) {
 
 		return a[i]*powf(t,3) + b[i]*powf(t,2) + c[i]*(t) + data[i]; //TODO: optimize calculations
 
-	} else {
-		throw INVALID_KERNEL_EXCEPTION;
+	} else if (kernel == SplineKernelWirth) {
+
+		//S dx = x - X;
+		//return ((A * dx + B) * dx + C) * dx + D;
+		return a[i]*powf(t,3) + b[i]*powf(t,2) + c[i]*(t) + data[i]; // unoptimized :)
+
+//		real dx = t;
+//		return ((a[i] * dx + b[i]) * dx + c[i]) * dx + d[i];
+
 	}
 }
 
@@ -355,8 +470,10 @@ real Spline1T <real> :: getFirstDerivative(int i, real t){
 
 		return 3 * a[i]*powf(t,2) + 2 * b[i]*(t) + c[i];
 
-	} else {
-		throw INVALID_KERNEL_EXCEPTION;
+	} else if (kernel == SplineKernelWirth) {
+
+		return 3 * a[i]*powf(t,2) + 2 * b[i]*(t) + c[i];
+
 	}
 }
 
@@ -377,8 +494,10 @@ real Spline1T <real> :: getSecondDerivative(int i, real t){
 
 		return 6 * a[i]*(t) + 2 * b[i];
 
-	} else {
-		throw INVALID_KERNEL_EXCEPTION;
+	} else if (kernel == SplineKernelWirth) {
+
+		return 6 * a[i]*(t) + 2 * b[i];
+
 	}
 }
 

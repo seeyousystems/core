@@ -4,7 +4,10 @@ QT += core \
     gui \
     xml \
     network
-HEADERS += GUI/OptionsDialog.h \
+HEADERS += Navigation/Weight/ObstacleAvoidanceWeight.h \
+    Navigation/Weight/CollisionAvoidanceWeight.h \
+    Library/RFIDDBase.h \
+    GUI/OptionsDialog.h \
     GUI/WeightEditor.h \
     Library/Math/complex.h \
     Library/Math/frenet.h \
@@ -69,7 +72,8 @@ HEADERS += GUI/OptionsDialog.h \
     Library/SleeperThread.h \
     Library/Util.h \
     create.h
-SOURCES += GUI/OptionsDialog.cpp \
+SOURCES += Library/RFIDDBase.cpp \
+    GUI/OptionsDialog.cpp \
     GUI/WeightEditor.cpp \
     Library/Math/gps.cpp \
     MovementTracker/AveragedTracker.cpp \

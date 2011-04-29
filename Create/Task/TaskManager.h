@@ -70,6 +70,7 @@ public:
 	Task* getIdleTask();
 	void setIdleTask(Task *idleTask);
 	void interruptAllTasks();
+	void interruptTask();
 
 private:
 	void sendTaskStatusChangeNotification(bool started, Task *task);

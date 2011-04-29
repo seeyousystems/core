@@ -40,7 +40,7 @@
 
 // TODO: If Arduino is not connected, set this variable to 0
 int Create::arduino_active = 1;
-int Create::network_active = 0;
+int Create::network_active = 1;
 Create::Create()
 {
 	// NULL everything for safety of deletion
@@ -215,21 +215,10 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 		arduino->resetvariables();
 	}
 
-	// Init movement tracker
-//	/*if(strMovementTracker == "Raw Movement Tracker")*/ {
-//		movementTracker = new RawMovementTracker(this, robotStartingPositionX, robotStartingPositionY, 0);
-//	}
-
 	// Init controller
 	if(controller) { delete controller; controller = NULL; }
 	controller = CoreFactory::createController(this, strController);
 	assert(controller);
-
-//	// Init controller
-//	if(controller) { delete controller; controller = NULL; }
-//	controller = new SeeYouController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
-//	//controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
-//	assert(controller);
 
 	// Init Arduino controller
 	if(arduino_active == 1) {
@@ -316,7 +305,7 @@ void Create::abort() {
 bool Create::disconnect() {
 
 	// Shutdown coil
-	if(coil) {
+	if(coil && coil->isConnected()) {
 		Debug::print("[Create] shutdown coil");
 		coil->setLEDState(0, 255, 255);
 		coil->enterPassiveMode();
@@ -335,7 +324,7 @@ bool Create::disconnect() {
 	// Return success
 	Debug::print("[Core] Disconnected");
 	connected = false;
-	emit createConnected();
+	emit createDisconnected();
 	return true;
 }
 

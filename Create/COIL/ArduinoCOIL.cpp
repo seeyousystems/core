@@ -136,6 +136,7 @@ int ArduinoCOIL::cread (QextSerialPort *port, byte* buf, int numbytes, seeyou_se
 				case SENSOR_LEFT_PINGER:	memcpy(buf, this->previousLeftPingReading, 2); break;
 				case SENSOR_RIGHT_PINGER:	memcpy(buf, this->previousRightPingReading, 2); break;
 				case SENSOR_RFID:	memcpy(buf, this->previousRFID, 2); break;
+				case SENSOR_ALL_SENSORS: memcpy(buf, this->previousAllSensors, 16); break;
 			}
 			return 2;
 		}
@@ -153,6 +154,7 @@ int ArduinoCOIL::cread (QextSerialPort *port, byte* buf, int numbytes, seeyou_se
 		case SENSOR_LEFT_PINGER:	memcpy(this->previousLeftPingReading, buf, 2); break;
 		case SENSOR_RIGHT_PINGER:	memcpy(this->previousRightPingReading, buf, 2); break;
 		case SENSOR_RFID:	memcpy(this->previousRFID, buf, 2); break;
+		case SENSOR_ALL_SENSORS: memcpy(this->previousAllSensors, buf, 16); break;
 	}
 
 	if (debug)
@@ -272,6 +274,74 @@ int ArduinoCOIL::readSensor (seeyou_sensor packet)
 	free (buffer);
 	return result;
 }
+
+int ArduinoCOIL::extractSensorFromData(int* data, seeyou_sensor packet)
+{
+	if(data == NULL) return 0;
+
+	int result = 0;
+	_mutex.lock(); {
+
+		switch(packet)
+		{
+			case SENSOR_IR_0: result = data[0]; break;
+			case SENSOR_IR_1: result = data[1]; break;
+			case SENSOR_IR_2: result = data[2]; break;
+			case SENSOR_IR_3: result = data[3]; break;
+			case SENSOR_COMPASS:
+			{
+				result = data[4];
+				break;
+			}
+			case SENSOR_LEFT_PINGER: result = data[5]; break;
+			case SENSOR_RIGHT_PINGER: result = data[6]; break;
+			case SENSOR_RFID: result = data[7]; break;
+
+			default: result = 0; break;
+
+		}
+	} _mutex.unlock();
+
+	return result;
+}
+
+bool ArduinoCOIL::gellAllSensors(int* result)
+{
+	if(!result) return false;
+
+	_mutex.lock(); {
+
+		byte buf[16];
+		int i, numread;
+
+		// Clear memory
+		memset (buf, 0, 16*sizeof(byte));
+		memset (result, 0, 8*sizeof(int));
+
+		// Read all
+		numread = readRawSensor(SENSOR_ALL_SENSORS, buf, 16);
+		if(numread < 16)
+		{
+			_mutex.unlock();
+			return false;
+		}
+
+		result[0] = (short) ((buf[0] << 8) | buf[1]);
+		result[1] = (short) ((buf[2] << 8) | buf[3]);
+		result[2] = (short) ((buf[4] << 8) | buf[5]);
+		result[3] = (short) ((buf[6] << 8) | buf[7]);
+		result[4] = (short) ((buf[8] << 8) | buf[9]);
+		Debug::print("[ArduinoCOIL] %1", result[4]);
+		result[5] = (short) ((buf[10] << 8) | buf[11]);
+		result[6] = (short) ((buf[12] << 8) | buf[13]);
+		result[7] = (short) ((buf[14] << 8) | buf[15]);
+
+	} _mutex.unlock();
+
+	return true;
+}
+
+
 
 int ArduinoCOIL::readCompass()
 {

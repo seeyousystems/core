@@ -216,6 +216,12 @@ void TaskManager::interruptAllTasks(){
 	tasks->setAllTaskStatus(Task::Interrupted);
 }
 
+void TaskManager::interruptTask()
+{
+	currentTask->status = Task::Interrupted;
+	//currentTask->interrupt();
+}
+
 // This method blocks until all tasks are finished
 void TaskManager::waitForAllTasksToFinish() {
 	while(tasks->hasTaskWithStatus(Task::Running) || tasks->hasTaskWithStatus(Task::Waiting)) {

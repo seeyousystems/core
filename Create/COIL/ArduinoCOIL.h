@@ -11,6 +11,7 @@
 #include <QObject>
 #include <QString>
 #include <QThread>
+#include <QMutex>
 
 #include "qextserialport/qextserialport.h"
 
@@ -19,6 +20,10 @@ typedef unsigned char	byte;
 class ArduinoCOIL : public QObject
 {
 	Q_OBJECT
+
+protected:
+	QMutex _mutex;				// Locking device for general purposes...
+
 
 public:
 
@@ -73,6 +78,7 @@ private:
 	byte previousLeftPingReading[2];
 	byte previousRightPingReading[2];
 	byte previousRFID[2];
+	byte previousAllSensors[16];
 
 
 
@@ -92,6 +98,8 @@ public:
     int readRFID();
     void enableDebug();
     void disableDebug();
+    int extractSensorFromData(int* data, seeyou_sensor packet);
+    bool gellAllSensors(int* result);
 
 };
 

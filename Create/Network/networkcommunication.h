@@ -22,6 +22,9 @@ public:
 
 private:
     static int network_debug;
+
+signals:
+	void yokeChanged(double yokeX, double yokeY);
 };
 
 #endif // NETWORKCOMMUNICATION_H

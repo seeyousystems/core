@@ -4,7 +4,10 @@
 #include "../Library/Debug.h"
 #include "Task/TaskManager.h"
 #include "Task/SeeYouTask.h"
+#include "Task/TestMoveTask.h"
 #include "../MovementTracker/Tracker.h"
+
+#include "Library/Joystick2D.h"
 
 #include "create.h"
 #include "Controller/SeeYouController.h"
@@ -58,6 +61,9 @@ NetworkCommunication::NetworkCommunication(Create *create, int interval) :
 
     prevNetPacket = netPacket;
     prevNetPacket.time = QTime::fromString("00:00:00", "hh:mm:ss");
+
+	connect(this, SIGNAL(yokeChanged(double,double)), this->create->joystick, SLOT(setYoke(double,double)));
+
 }
 
 NetworkCommunication::~NetworkCommunication()
@@ -159,103 +165,140 @@ void NetworkCommunication::run()
 				 * Read most recent data from server
 				 */
 				bool ok;
-				netPacket.msgID = tokens.at(0).toInt(&ok, 10);
-				netPacket.userID = tokens.at(1).toInt(&ok, 10);
-				netPacket.timeStamp = tokens.at(2);
-				netPacket.override = tokens.at(3).toInt(&ok, 10);
-				netPacket.x = tokens.at(4).toInt(&ok, 10);
-				netPacket.y = tokens.at(5).toInt(&ok, 10);
-				netPacket.direction = tokens.at(6);
-				netPacket.room = tokens.at(7);
-				netPacket.RFID = tokens.at(8).toInt(&ok, 10);
-				netPacket.msg = tokens.at(9);
-
-				/*
-				 * Extract the time which is the second token '2011-04-22 00:31:20'
-				 */
-				QStringList piece = netPacket.timeStamp.split(" ");
-				netPacket.time = QTime::fromString(piece.at(1), "hh:mm:ss");
-				//qDebug() << netPacket.time;
-
-
-
-				/* ==============================
-				 * 2. Perform Tasks
-				 * ==============================*/
-					/*===============================================
-					 * Override Controls:  This allows messages with "forward/backwards/left/right"
-					 * to execute a task.
-					 * TODO: Prioritize the override commands with the autonomous controls.
-					===================================================*/
-
-				/*
-				 * Compare the time between the messages to ignore delayed packets
-				 */
-				int delay = netPacket.time.secsTo(prevNetPacket.time);
-				if(netPacket.msgID != prevNetPacket.msgID)
+				if(tokens.count() == 10)
 				{
-					if(delay >= -60)
+					netPacket.msgID = tokens.at(0).toInt(&ok, 10);
+					netPacket.userID = tokens.at(1).toInt(&ok, 10);
+					netPacket.timeStamp = tokens.at(2);
+					netPacket.override = tokens.at(3).toInt(&ok, 10);
+					netPacket.x = tokens.at(4).toInt(&ok, 10);
+					netPacket.y = tokens.at(5).toInt(&ok, 10);
+					netPacket.direction = tokens.at(6);
+					netPacket.room = tokens.at(7);
+					netPacket.RFID = tokens.at(8).toInt(&ok, 10);
+					netPacket.msg = tokens.at(9);
+
+
+					/*
+					 * Extract the time which is the second token '2011-04-22 00:31:20'
+					 */
+					QStringList piece = netPacket.timeStamp.split(" ");
+					netPacket.time = QTime::fromString(piece.at(1), "hh:mm:ss");
+					//qDebug() << netPacket.time;
+
+
+
+					/* ==============================
+					 * 2. Perform Tasks
+					 * ==============================*/
+						/*===============================================
+						 * Override Controls:  This allows messages with "forward/backwards/left/right"
+						 * to execute a task.
+						 * TODO: Prioritize the override commands with the autonomous controls.
+						===================================================*/
+
+					/*
+					 * Compare the time between the messages to ignore delayed packets
+					 */
+					int delay = netPacket.time.secsTo(prevNetPacket.time);
+					if(netPacket.msgID != prevNetPacket.msgID)
 					{
-						qDebug() << netPacket.msg;
-						//IF OVERRIDE IS OFF
-//						if (netPacket.RFID != 0)
-//						{
-//							create->controller->tags(netPacket.RFID);
-//							Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
-//						}
-						if(netPacket.override == 0)
+						if(delay >= -60)
 						{
-							/*
-							 * Prevent tag to be overwritten with zero
-							 */
+							qDebug() << netPacket.msg;
+							//IF OVERRIDE IS OFF
 							if (netPacket.RFID != 0)
 							{
-								//create->controller->tags(netPacket.RFID);
-								//Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
+	//							create->controller->tags(netPacket.RFID);
+	//							Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
+							}
+							if(netPacket.override == 0)
+							{
+								/*
+								 * Prevent tag to be overwritten with zero
+								 */
+								if (netPacket.RFID != 0)
+								{
+									//create->controller->tags(netPacket.RFID);
+									//Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
+								}
+							}
+							//IF OVERRIDE IS ON
+							else if(netPacket.override == 1)
+							{
+								if(netPacket.msg == "left")
+								{
+									//create->taskManager->addTask(new TestMoveTask(create, "left"));
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+									emit yokeChanged(0.75, -0.013);
+								}
+								else if(netPacket.msg == "forwardleft")
+								{
+									//create->taskManager->addTask(new TestMoveTask(create, "left"));
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+									emit yokeChanged(0.70, 0.70);
+								}
+								else if(netPacket.msg == "backwardleft")
+								{
+									//create->taskManager->addTask(new TestMoveTask(create, "left"));
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+									emit yokeChanged(0.70, -0.70);
+								}
+								else if(netPacket.msg == "right")
+								{
+									//create->taskManager->addTask(new TestMoveTask(create, "right"));
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+									emit yokeChanged(-0.75, -0.013);
+								}
+								else if(netPacket.msg == "forwardright")
+								{
+									//create->taskManager->addTask(new TestMoveTask(create, "right"));
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+									emit yokeChanged(-0.60, 0.69);
+								}
+								else if(netPacket.msg == "backwardright")
+								{
+									//create->taskManager->addTask(new TestMoveTask(create, "right"));
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+									emit yokeChanged(-0.81, -0.773);
+								}
+								else if(netPacket.msg == "forward")
+								{
+	//								Debug::print("[NetworkCommunication] GlobalTag for Vernon: %1", create->controller->getTags());
+									//create->taskManager->addTask(new TestMoveTask(create, "forward"));
+									emit yokeChanged(0.0, .90);
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+								}
+								else if(netPacket.msg == "backward")
+								{
+									//create->taskManager->addTask(new TestMoveTask(create, "backward"));
+									emit yokeChanged(0.0, -0.90);
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+								}
+	//							else if(netPacket.msg == "tag")
+	//							{
+	//								create->addTask(new SeeYouTask(this->create, "NetComm_tag", 100));
+	//							}
+								else if(netPacket.msg == "stop")
+								{
+									//create->taskManager->addTask(new TestMoveTask(this->create, "stop"));
+//									if (create->taskManager->getTask() != NULL)
+//									{
+//										create->taskManager->setCurrentTask(Task::Interrupted);
+//									}
+									emit yokeChanged(0.0, 0.0);
+									Debug::print("[NetworkCommunication] left: %1   %2", netPacket.x, netPacket.x);
+								}
 							}
 						}
-						//IF OVERRIDE IS ON
-//						else if(netPacket.override == 1)
-//						{
-//							if(netPacket.msg == "left")
-//							{
-//								create->addTask(new SeeYouTask(this->create, "NetComm_left", 100));
-//							}
-//							else if(netPacket.msg == "right")
-//							{
-//								create->addTask(new SeeYouTask(this->create, "NetComm_right", 100));
-//							}
-//							else if(netPacket.msg == "forward")
-//							{
-//								Debug::print("[NetworkCommunication] GlobalTag for Vernon: %1", create->controller->getTags());
-//								create->addTask(new SeeYouTask(this->create, "NetComm_forward", 100));
-//							}
-//							else if(netPacket.msg == "backward")
-//							{
-//								create->addTask(new SeeYouTask(this->create, "NetComm_backward", 100));
-//							}
-//							else if(netPacket.msg == "tag")
-//							{
-//								create->addTask(new SeeYouTask(this->create, "NetComm_tag", 100));
-//							}
-//							else if(netPacket.msg == "stop")
-//							{
-//								create->addTask(new SeeYouTask(this->create, "NetComm_stop", 100, Task::Immediate));
-//								if (create->taskManager->getTask() != NULL)
-//								{
-//									create->taskManager->setCurrentTask(Task::Interrupted);
-//								}
-//							}
-//						}
 					}
-				}
-
 
 				/*
 				 * Store to previous packet
 				 */
 				prevNetPacket = netPacket;
 
+				} // end if(count == 10)
 
             } catch(...)
             {

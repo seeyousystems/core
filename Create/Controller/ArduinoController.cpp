@@ -16,12 +16,14 @@ ArduinoController::ArduinoController(QString name, Create *create, int interval)
 	this->name = name;
 	this->create = create;
 	this->interval = interval;
+	this->sensorData = (int*)malloc(8*sizeof(int));
 	// TODO Auto-generated constructor stub
 	stopRequested = false;
 }
 
 ArduinoController::~ArduinoController() {
 	// TODO Auto-generated destructor stub
+	free(sensorData);
 }
 
 void ArduinoController::stop() {

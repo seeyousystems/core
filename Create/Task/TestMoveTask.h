@@ -9,7 +9,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -33,21 +33,45 @@
 
 #include "Task.h"
 
+#include "../Library/Math.h"
+
+#include <QTime>
+
+#define AVAILABLE_TESTMOVETASKS "Square|Rotate 90|Rotate 360|Triangle|Straight|Circle|Vector Circle|Accuracy Test|WallFollowerAccuracy|Tracker Calibration|Straight with Weights|Custom Move"
 
 class TestMoveTask : public Task {
 
 	Q_OBJECT
 
-public:
-	int speed;
-	QString move;
-	int tick;
+private:
+	Trafo2D destination;
+	double angleToTurn;			// Note: this is double for extra precision during emulation calculation...
+	double distanceToMove;		// Note: this is double for extra precision during emulation calculation...
 
 public:
-	TestMoveTask(Create *create, QString move, int speed, TaskPriority priority = Task::Normal);
+	QString moveName;
+	int tick;
+	QTime starttime;
+	Trafo2D startpos;
+	double startMileage;
+	long startdist;
+	short customMovevl;
+	short customMovevr;
+	double customTime;
+	double customDistance;
+
+public:
+	TestMoveTask(Create *create, QString move, TaskPriority priority = Task::Normal);
 	virtual ~TestMoveTask();
+	virtual void preProcess();
 	virtual void process();
+	virtual void postProcess();
 	virtual QString description();
+	void move(int distance);
+	void moveBack(int distance);
+	void turn(int angle);
+	void waitForDistance();
+	void waitForAngle();
 };
 
 #endif /* TESTMOVETASK_H_ */

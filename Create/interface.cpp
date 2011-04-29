@@ -94,33 +94,12 @@ void Interface::connectDisconnect()
 		// Init the create
 		if(create->connect(cbPort->currentText(), true)) {
 			create->start();
-		}
-
-		if(create->controller->name == "emss") {
-			connect(joystick, SIGNAL(yokeChanged(double,double)), create->controller, SLOT(setYoke(double,double)));
-		}
-		else if(create->controller->name == "SeeYou") {
-			Debug::print("[Interface] SeeYou Armed");
-			connect(joystick, SIGNAL(yokeChanged(double,double)), create->controller, SLOT(setYoke(double,double)));
-			connect(sliderSpeed, SIGNAL(valueChanged(int)), create->controller, SLOT(setSpeed(int)));
-			connect(sliderAngle, SIGNAL(valueChanged(int)), create->controller, SLOT(setAngle(int)));
-		}
-		else if(create->controller->name == "Block Drive") {
-
-			connect(btnBlockDriveForward, SIGNAL(clicked()), create->controller, SLOT(moveForward()));
-			connect(btnBlockDriveBackward, SIGNAL(clicked()), create->controller, SLOT(moveBackward()));
-			connect(btnBlockDriveTurnLeft, SIGNAL(clicked()), create->controller, SLOT(turnLeft()));
-			connect(btnBlockDriveTurnRight, SIGNAL(clicked()), create->controller, SLOT(turnRight()));
-			connect(sliderDistance, SIGNAL(valueChanged(int)), create->controller, SLOT(setDistance(int)));
-			connect(sliderSpeed, SIGNAL(valueChanged(int)), create->controller, SLOT(setSpeed(int)));
-			connect(sliderAngle, SIGNAL(valueChanged(int)), create->controller, SLOT(setAngle(int)));
-			connect(cbSlowStart, SIGNAL(currentIndexChanged(QString)), create->controller, SLOT(setSlowStartMode(QString)));
-			//tabBlockDriveController->setEnabled(true);
+			blockBox->setEnabled(true);
 		}
 
 		// Enable/Disable Buttons
-		btnConnect->setText("Disconnect");
-		blockBox->setEnabled(true);
+//		btnConnect->setText("Disconnect");
+//		blockBox->setEnabled(true);
 		//groupBox->
 
 	}
@@ -133,9 +112,10 @@ void Interface::connectDisconnect()
 		create->disconnect();
 
 		// Enable/Disable Buttons
-		btnConnect->setText("Connect");
+		btnConnect->setText("Disconnecting...");
 		btnConnect->repaint();
 		blockBox->setEnabled(false);
+
 
 	}
 }
@@ -162,11 +142,12 @@ void Interface::createDisconnected()
 	// Gui stuff
 	btnConnect->setText("Connect");
 	btnConnect->setIcon(QIcon(":connect"));
+	btnConnect->repaint();
 	btnAbort->setEnabled(false);
 	//btnRefreshSensors->setEnabled(false);
 
 	emit createConnectionChanged(create);
-	Debug::print("[Interface] disconnected");
+	Debug::print("[Interface] disconnected here");
 }
 
 void Interface::refreshSensors() {
@@ -239,9 +220,12 @@ void Interface::currentTask(int index)
 	if(task == "Backwards") {
 //		create->taskManager->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
 	}
-//	else if(task == "Rotate 90") {
-//		create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
-//	}
+	else if(task == "Rotate 90") {
+		create->addTask(new TestMoveTask(create, task));
+	}
+	else if(task == "Accuracy Test") {
+		create->addTask(new TestMoveTask(create, task));
+	}
 //	else if(task == "Rotate -90")
 //	{
 //			create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
@@ -266,20 +250,28 @@ void Interface::currentTask(int index)
 //	}
 	else if(task == "Straight")
 	{
-		create->taskManager->addTask(new TestMoveTask(create, task, this->sliderSpeed->value()));
-
+		;//create->taskManager->addTask(new TestMoveTask(create, task, this->sliderSpeed->value()));
+		create->taskManager->addTask(new TestMoveTask(create, task));
 
 	}
-//	else if(task == "Stop")
-//	{
+	else if(task == "Stop")
+	{
 //		//create->taskManager->stopRequested = true;
 //		//Debug::print("[Interface] current status %l", create->taskManager->currentTask->status);
 //		//create->taskManager->currentTask->status = Task::Interrupted;
-//		if (create->taskManager->getTask() != NULL)
+//		if (create->taskManager->getIdleTask() != NULL)
 //		{
-//			create->taskManager->setCurrentTask(Task::Interrupted);
+//			Debug::print("[Interface] current status ");
+//
+//			create->taskManager->addTask(new TestMoveTask(create, task));
 //		}
 
+		if (create->taskManager->getIdleTask() != NULL)
+		{
+
+			create->taskManager->interruptTask();
+			Debug::print("[SeeYouTask:NETCOMM] Stop Tasks");
+		}
 
 //		for(int i = 0; i < create->taskManager->tasks->count(); i++) {
 //			create->taskManager->tasks->at(i)->status = Task::Interrupted;
@@ -299,7 +291,7 @@ void Interface::currentTask(int index)
 		//create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value(), Task::Immediate));
 
 
-//	}
+	}
 }
 
 QGroupBox *Interface::createSensorExclusiveGroup()
@@ -368,7 +360,7 @@ QGroupBox *Interface::createControlsExclusiveGroup()
 
 	// Joystick
 	joystick = new JoystickView(JoystickView::JOYSTICK_MODE_FREE);
-	joystick->acceleration = JoystickView::JOYSTICK_ACCELERATION_SLOWDOWN;
+	joystick->acceleration = JoystickView::JOYSTICK_ACCELERATION_INSTANT;
 	joystickFluidController = new JoystickView(JoystickView::JOYSTICK_MODE_FREE);
 	joystickFluidController->acceleration = JoystickView::JOYSTICK_ACCELERATION_SLOWDOWN;
 
@@ -472,6 +464,7 @@ QGroupBox *Interface::createBlockControllerExclusiveGroup()
 	cbTask->addItem("Rotate -90");
 	cbTask->addItem("Rotate 360");
 	cbTask->addItem("Straight Path Move");
+	cbTask->addItem("Accuracy Test");
 	cbTask->addItem("Wall Follower");
 	cbTask->addItem("Straight");
 	cbTask->addItem("Stop");

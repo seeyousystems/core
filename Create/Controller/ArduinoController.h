@@ -25,6 +25,7 @@ public:
 	Create *create;
 	QString name;
 	int interval;
+	int *sensorData; // Pointer to sensor data from MEGA board
 
 	typedef struct {
 			int heading;

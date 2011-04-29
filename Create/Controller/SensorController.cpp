@@ -38,14 +38,33 @@ void SensorController::run()
 	while (stopRequested == false) {
 //		static int x = 0;
 
+
+
+		if(sensorData) {
+			if(create->arduino->gellAllSensors(sensorData)) {
+				// emit some signal
+			}
+			else {
+				Debug::print("[SensorController] Error with sensorData stuff");
+			}
+		}
+		sensorPacket.heading = create->arduino->extractSensorFromData(sensorData, ArduinoCOIL::SENSOR_COMPASS);
+		sensorPacket.frontIR = create->arduino->extractSensorFromData(sensorData, ArduinoCOIL::SENSOR_IR_2);
+		sensorPacket.leftIR = create->arduino->extractSensorFromData(sensorData, ArduinoCOIL::SENSOR_IR_3);
+		sensorPacket.rightIR = create->arduino->extractSensorFromData(sensorData, ArduinoCOIL::SENSOR_IR_1);
+		sensorPacket.leftPinger = create->arduino->extractSensorFromData(sensorData, ArduinoCOIL::SENSOR_LEFT_PINGER);
+		sensorPacket.rightPinger = create->arduino->extractSensorFromData(sensorData, ArduinoCOIL::SENSOR_RIGHT_PINGER);
+		sensorPacket.RFID = create->arduino->extractSensorFromData(sensorData, ArduinoCOIL::SENSOR_RFID);
+
+
 		// Get sensor data
-		sensorPacket.heading = arduino_getHeading();
-		sensorPacket.frontIR = arduino_getFrontIR();
-		sensorPacket.leftIR = arduino_getLeftIR();
-		sensorPacket.rightIR = arduino_getRightIR();
-		sensorPacket.leftPinger = arduino_getLeftPinger();
-		sensorPacket.rightPinger = arduino_getRightPinger();
-		sensorPacket.RFID = arduino_getRFID();
+//		sensorPacket.heading = arduino_getHeading();
+//		sensorPacket.frontIR = arduino_getFrontIR();
+//		sensorPacket.leftIR = arduino_getLeftIR();
+//		sensorPacket.rightIR = arduino_getRightIR();
+//		sensorPacket.leftPinger = arduino_getLeftPinger();
+//		sensorPacket.rightPinger = arduino_getRightPinger();
+//		sensorPacket.RFID = arduino_getRFID();
 ////
 //		mutex.lock();
 //		previousPacket = sensorPacket;
@@ -64,7 +83,8 @@ void SensorController::run()
 		// Update obstacle avoidance algorithm (we are working with cm not mm)
 		//create->vffAI->run();
 		//create->vffAI->run( leftPinger, rightIR, frontIR, leftIR, rightPinger, x/10, y/10 );
-//		printf("[ArduinoController] Left: %3d  UpperLeft: %3d  Front: %3d  UpperRight: %3d  Right: %3d  Heading: %d\n", sensorPacket.leftPinger, sensorPacket.leftIR, sensorPacket.frontIR, sensorPacket.rightIR, sensorPacket.rightPinger, sensorPacket.heading);
+		if(create->boolSetting("SENSORCONTROLLER_DEBUG"))
+			printf("[ArduinoController] Left: %3d  UpperLeft: %3d  Front: %3d  UpperRight: %3d  Right: %3d  Heading: %d\n", sensorPacket.leftPinger, sensorPacket.leftIR, sensorPacket.frontIR, sensorPacket.rightIR, sensorPacket.rightPinger, sensorPacket.heading);
 		//create->vffAI->run();
 //		Debug::print("[SensorController] RFID: %1", sensorPacket.RFID);
 //		Debug::print("Test: %1\n", ++x);

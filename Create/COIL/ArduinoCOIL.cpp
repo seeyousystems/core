@@ -331,7 +331,7 @@ bool ArduinoCOIL::gellAllSensors(int* result)
 		result[2] = (short) ((buf[4] << 8) | buf[5]);
 		result[3] = (short) ((buf[6] << 8) | buf[7]);
 		result[4] = (short) ((buf[8] << 8) | buf[9]);
-		Debug::print("[ArduinoCOIL] %1", result[4]);
+		//Debug::print("[ArduinoCOIL] %1", result[4]);
 		result[5] = (short) ((buf[10] << 8) | buf[11]);
 		result[6] = (short) ((buf[12] << 8) | buf[13]);
 		result[7] = (short) ((buf[14] << 8) | buf[15]);

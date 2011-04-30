@@ -4,7 +4,8 @@ QT += core \
     gui \
     xml \
     network
-HEADERS += Navigation/Weight/ObstacleAvoidanceWeight.h \
+HEADERS += Navigation/Weight/OrientationWeight.h \
+    Navigation/Weight/ObstacleAvoidanceWeight.h \
     Navigation/Weight/CollisionAvoidanceWeight.h \
     Library/RFIDDBase.h \
     GUI/OptionsDialog.h \

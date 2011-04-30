@@ -51,6 +51,9 @@ private:
 public:
 	QString moveName;
 	int tick;
+	int robotsize;
+	int halfstep;
+	int quarterstep;
 	QTime starttime;
 	Trafo2D startpos;
 	double startMileage;

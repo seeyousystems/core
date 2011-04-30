@@ -8,10 +8,11 @@
 #include "../MovementTracker/Tracker.h"
 
 #include "Library/Joystick2D.h"
-
+#include "../COIL/COIL.h"
 #include "create.h"
 #include "Controller/SeeYouController.h"
 #include "Controller/ArduinoController.h"
+#include "Controller/Controller.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -348,12 +349,18 @@ void NetworkCommunication::run()
 		QString st;
 		st.setNum(create->arduinoController->getHeading(), 10);
 		serverPacket.direction = "\"" + st + "\"";
+		bool bumperLeft = (create->coil->extractSensorFromData(create->controller->sensorData, COIL::SENSOR_BUMPS_AND_WHEEL_DROPS) & COIL::BUMPWHEELDROP_BUMP_LEFT) == COIL::BUMPWHEELDROP_BUMP_LEFT;
+		bool bumperRight = (create->coil->extractSensorFromData(create->controller->sensorData, COIL::SENSOR_BUMPS_AND_WHEEL_DROPS) & COIL::BUMPWHEELDROP_BUMP_RIGHT) == COIL::BUMPWHEELDROP_BUMP_RIGHT;
 
-		serverPacket.bumper = "\"off\"";
+		QString bump;
+		bump.setNum((bumperLeft || bumperRight), 10);
+		serverPacket.bumper = "\"" + bump + "\"";
 		serverPacket.bitrate = 54;
-		serverPacket.batteryLife = 49;
-		serverPacket.voltage = 7.8;
+		serverPacket.batteryLife = create->coil->extractSensorFromData(create->controller->sensorData,COIL::SENSOR_BATTERY_CHARGE);
+		serverPacket.voltage = create->coil->extractSensorFromData(create->controller->sensorData,COIL::SENSOR_VOLTAGE);
 		serverPacket.message = "\"some\"";
+		//serverPacket.speed = create->coil->extractSensorFromData(create->controller->targetSpeed, create->intSetting(COIL::SENSOR_REQUESTED_VELOCITY)); //create->intSetting("EMSSCONTROLLER_SPEED"); //
+		//serverPacket.speed = create->coil->extractSensorFromData(create->navigation->getWheelSpeed(0, 0);
 
 //       n = sprintf(buffer, "%d,50,%d,400,\"north\",\"off\",%d,49,5.999,\"Hanam breaks computers world\",\n", 29+counter, 250+counter, counter);
 		n = sprintf(buffer, "%d,%d,%d,%d,%s,%s,%d,%d,%f,%s,\n",

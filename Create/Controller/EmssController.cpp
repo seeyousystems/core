@@ -26,6 +26,10 @@
 
 #include "../COIL/COIL.h"
 
+#include "ArduinoController.h"
+
+#include "../COIL/ArduinoCOIL.h"
+
 #include "../Library/Debug.h"
 #include "../Library/SleeperThread.h"
 
@@ -104,7 +108,9 @@ void EmssController::process() {
 	emit signalChangedAngle(angleDelta);
 
 	// Get other sensor data
-	int sharpIRSensor = create->coil->getIRSensorDistanceFromAnalogSignal(create->coil->extractSensorFromData(sensorData,COIL::SENSOR_ANALOG_SIGNAL));
+	int sharpIRSensor = create->arduino->extractSensorFromData(create->arduinoController->sensorData, ArduinoCOIL::SENSOR_IR_2);
+	sharpIRSensor *= 25.4;
+//	int sharpIRSensor = create->coil->getIRSensorDistanceFromAnalogSignal(create->coil->extractSensorFromData(sensorData,COIL::SENSOR_ANALOG_SIGNAL));
 	int wallIRSensor = create->coil->getWallSensorDistanceFromSignal(create->coil->extractSensorFromData(sensorData,COIL::SENSOR_WALL_SIGNAL));
 	int bumpsWheelDrop = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_BUMPS_AND_WHEEL_DROPS);
 	bool cliffLeft = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_CLIFF_LEFT);
@@ -112,6 +118,8 @@ void EmssController::process() {
 	bool cliffFrontRight = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_CLIFF_FRONT_RIGHT);
 	bool cliffRight = create->coil->extractSensorFromData(sensorData,COIL::SENSOR_CLIFF_RIGHT);
 	bool isForwardsDirection = (Lwheel > 0 && Rwheel > 0);
+
+	//ebug::print("[EmssController] sensor: %1", sharpIRSensor);
 
 	// Drop detected?
 	if (cliffLeft || cliffFrontLeft || cliffFrontRight || cliffRight) {

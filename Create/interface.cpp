@@ -6,11 +6,25 @@
 #include "Library/Util.h"
 #include "Library/Joystick2D.h"
 
+#include "Map/GridMap.h"
+#include "Map/HeatMap.h"
+#include "Map/TerrainMap.h"
+#include "Map/ObjectMap.h"
+#include "Map/PhysicalMap.h"
+#include "Map/StructureMap.h"
+#include "Map/FadingCollisionMap.h"
+
+#include "GUI/MapObjectsView.h"
+#include "GUI/MapOverview.h"
+
 #include "create.h"
+#include "CoreFactory.h"
 
 #include "COIL/COIL.h"
 
 #include "MovementTracker/MovementTracker.h"
+#include "MovementTracker/Tracker.h"
+
 
 #include "Controller/Controller.h"
 #include "Controller/ArduinoController.h"
@@ -26,6 +40,8 @@ Interface::Interface(QWidget *parent)
 {
 	// Initialize
 	create = NULL;
+	settings = NULL;
+	ignoreViewportClosedSignal = false;
 
 	// PushButtons
 	btnConnect = new QPushButton(QIcon(":connect"), "Connect");
@@ -42,10 +58,12 @@ Interface::Interface(QWidget *parent)
 	setWindowTitle(tr("SeeYou Systems"));
 	resize(640, 240);
 
+
+
+
 	// Setup connections
 	connect(btnConnect, SIGNAL(clicked()), this, SLOT(connectDisconnect()));
 	connect(cbTask, SIGNAL(currentIndexChanged(int)), this, SLOT(currentTask(int)));
-	connect(killSwitchButton, SIGNAL(clicked()), this, SLOT(killSwitchFunction()));
 
 	// Slider connections
 	connect(sliderDistance, SIGNAL(valueChanged(int)), lcdDistance, SLOT(display(int)));
@@ -67,11 +85,44 @@ Interface::Interface(QWidget *parent)
 
 	// Enable/Disable Buttons
 	blockBox->setEnabled(false);
+
+	// Load settings and default values if needed
+	settings = new QSettings(QString("%1emssInterface.config").arg(Util::getResourcesFilePath()), QSettings::IniFormat);
+
+	if(settings->value("Window_X", -1) != -1 && settings->value("Window_Y", -1) != -1 && settings->value("Window_Width", -1) != -1 && settings->value("Window_Height", -1) != -1) this->setGeometry(settings->value("Window_X").toInt(), settings->value("Window_Y").toInt(), settings->value("Window_Width").toInt(), settings->value("Window_Height").toInt());
+
+	// Setup debugging console
+	//Debug::setOutput(txtHistory);
+	if(settings->value("Log_LogToFile", "false").toBool()) {
+		QString date = QDate::currentDate().toString("yyyyMMdd");
+		QString time = QTime::currentTime().toString("hhmmss");
+		Debug::logToFile(Util::getLogsFilePath().append(QString("%1_%2.log").arg(date).arg(time)));
+	}
+
+
+
+	// Set up viewport list
+	viewports = new QList<Viewport*>();
 }
 
 Interface::~Interface()
 {
+
+	// Save settings
+	settings->setValue("Connection_Port", cbPort->currentIndex());
+//	settings->setValue("Connection_Controller", cbController->currentIndex());
+//	settings->setValue("Connection_Tracker", cbTracker->currentIndex());
+//	settings->setValue("Connection_Navigation", cbNavigation->currentIndex());
+//	settings->setValue("Connection_EmulateHardware", checkEmulation->isChecked());
+//	settings->setValue("Connection_SafeMode", checkSafeMode->isChecked());
+	settings->setValue("Window_X", this->geometry().x());
+	settings->setValue("Window_Y", this->geometry().y());
+	settings->setValue("Window_Width", this->geometry().width());
+	settings->setValue("Window_Height", this->geometry().height());
+	settings->setValue("Controller_TargetSpeed", sliderSpeed->value());
 	// Free heap memory
+	if(viewports) delete viewports;
+	if(settings) delete settings;
 	if(create) delete create;
 }
 
@@ -124,14 +175,17 @@ void Interface::createConnected()
 {
 	// Connections...
 	connect(joystick, SIGNAL(yokeChanged(double,double)), create->joystick, SLOT(setYoke(double,double)));
-	//connect(sliderSpeed, SIGNAL(valueChanged(int)), create->controller, SLOT(setTargetSpeed(int)));
-	//create->controller->setTargetSpeed(sliderSpeed->value());
+	connect(sliderSpeed, SIGNAL(valueChanged(int)), create->controller, SLOT(setTargetSpeed(int)));
+	create->controller->setTargetSpeed(sliderSpeed->value());
+	connect(create->tracker, SIGNAL(moved(long,long,double)), this, SLOT(focusOnPoint(long, long)));
 
 	// GUI stuff...
 	btnConnect->setText("Disconnect");
 	btnConnect->setIcon(QIcon(":disconnect"));
+//	menuView->setEnabled(true);
 	//btnAbort->setEnabled();
 	//btnRefreshSensors->setEnabled(true);
+	if(viewports->count() == 0) menuAction(actionViewNewViewport); // open a new viewport
 
 	emit createConnectionChanged(create);
 	Debug::print("[Interface] connected");
@@ -144,73 +198,195 @@ void Interface::createDisconnected()
 	btnConnect->setIcon(QIcon(":connect"));
 	btnConnect->repaint();
 	btnAbort->setEnabled(false);
+//	menuView->setEnabled(false);
 	//btnRefreshSensors->setEnabled(false);
 
 	emit createConnectionChanged(create);
 	Debug::print("[Interface] disconnected here");
 }
 
-void Interface::refreshSensors() {
-//	txtSensorData->clear();
-//	int* data = create->coil->getAllSensors();
-//	if(data != NULL) {
+void Interface::menuAction(QAction *action) {
+
+	if(action == actionInterfaceExit) {
+
+		if(create) create->disconnect();
+		qApp->closeAllWindows();
+
+	} else if(action == actionViewNewViewport) {
+
+		Viewport *viewport = (Viewport*)CoreFactory::createGUIView(create, "Viewport", settings);
+		assert(viewport);
+
+		viewport->registerMap(create->physicalMap);
+		viewport->registerMap(create->gridMap);
+		viewport->registerMap(create->terrainMap);
+		viewport->registerMap(create->heatMap);
+		viewport->registerMap(create->fadingCollisionMap);
+		viewport->registerMap(create->structureMap);
+		viewport->registerMap(create->objectMap);
+
+		viewport->addToolbarAction("Add Task","task[instant]", QIcon(":cog_add"));
+		viewport->addToolbarAction("Navigate","navigationtask[instant]", QIcon(":cog_go"));
+		viewport->addToolbarSeparator();
+		viewport->addToolbarAction("Set NavPoint","navpoint", QIcon(":flag_pink"));
+		viewport->addToolbarAction("Reset NavPoints","resetNavpoint[instant]", QIcon(":/flag_pink_delete"));
+		viewport->addToolbarSeparator();
+		viewport->addToolbarAction("Map Info","environmentinfo", QIcon(":information"));
+		viewport->addToolbarAction("Focus on Point","focusviewport", QIcon(":cursor"));
+		viewport->addToolbarSeparator();
+		viewport->addToolbarAction("Find Robot","findrobot[instant]", QIcon(":find"));
+		viewport->addToolbarAction("Move Robot","moverobot", QIcon(":arrow_in"));
+		viewport->addToolbarAction("Rotate Robot","rotaterobot", QIcon(":arrow_rotate_anticlockwise"));
+		viewport->addToolbarAction("Set Robot Docked","setrobotdocked[instant]", QIcon(":house"));
+		viewport->addToolbarAction("Move Docking Station","movedockingstation", QIcon(":arrow_in_gray"));
+		viewport->addToolbarAction("Rotate Docking Station","rotatedockingstation", QIcon(":arrow_rotate_anticlockwise_gray"));
+		viewport->addToolbarSeparator();
+		viewport->addToolbarAction("Mark as Collision","collision", QIcon(":cross"));
+		viewport->addToolbarAction("Mark as Open Area","openarea", QIcon(":tick"));
+		viewport->addToolbarAction("Raise Terrain","raiseterrain", QIcon(":world_add"));
+		viewport->addToolbarAction("Lower Terrain","lowerterrain", QIcon(":world_delete"));
+
+		viewports->append(viewport);
+
+		connect(viewport, SIGNAL(toolbarAction(Viewport*, QString,long,long)), this, SLOT(viewportAction(Viewport*, QString,long,long)));
+		connect(viewport, SIGNAL(closed(Viewport*)), this, SLOT(viewportClosed(Viewport*)));
+
+		viewport->setGeometry(this->geometry().x()+this->width()+20,this->geometry().y(), (int)(this->width()*1.5),this->height());
+		viewport->show();
+		viewport->focusOnPoint(create->tracker->getX(), create->tracker->getY());
+
+	} else if(action == actionViewTaskEditor) {
+
+		QWidget *view = CoreFactory::createGUIView(create, "TaskEditor");
+		connect(this, SIGNAL(createConnectionChanged(Create*)), view, SLOT(registerCore(Create*)));
+		view->show();
+
+	} else if(action == actionViewWeightEditor) {
+
+		QWidget *view = CoreFactory::createGUIView(create, "WeightEditor");
+		connect(this, SIGNAL(createConnectionChanged(Create*)), view, SLOT(registerCore(Create*)));
+		view->show();
+
+	} else if(action == actionViewRobotControlPanel) {
+
+		QWidget *view = CoreFactory::createGUIView(create, "RobotControlPanel");
+		connect(this, SIGNAL(createConnectionChanged(Create*)), view, SLOT(registerCore(Create*)));
+		view->show();
+
+	}
+
+//	else if(action == actionViewRobotSpeedGraph) {
 //
-//		txtSensorData->append(QString("BUMPS_AND_WHEEL_DROPS:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BUMPS_AND_WHEEL_DROPS)));
-//		txtSensorData->append(QString("WALL:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_WALL)));
-//		txtSensorData->append(QString("CLIFF_LEFT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_LEFT)));
-//		txtSensorData->append(QString("CLIFF_FRONT_LEFT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_LEFT)));
-//		txtSensorData->append(QString("CLIFF_FRONT_RIGHT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_RIGHT)));
-//		txtSensorData->append(QString("CLIFF_RIGHT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_RIGHT)));
-//		txtSensorData->append(QString("VIRTUAL_WALL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_VIRTUAL_WALL)));
-//		txtSensorData->append(QString("OVERCURRENT:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_OVERCURRENT)));
-//		txtSensorData->append(QString("INFRARED:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_INFRARED)));
-//		txtSensorData->append(QString("BUTTONS:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BUTTONS)));
-//		txtSensorData->append(QString("DISTANCE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_DISTANCE)));
-//		txtSensorData->append(QString("ANGLE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_ANGLE)));
-//		txtSensorData->append(QString("CHARGING_STATE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CHARGING_STATE)));
-//		txtSensorData->append(QString("VOLTAGE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_VOLTAGE)));
-//		txtSensorData->append(QString("CURRENT:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CURRENT)));
-//		txtSensorData->append(QString("BATTERY_TEMP:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_TEMP)));
-//		txtSensorData->append(QString("BATTERY_CHARGE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CHARGE)));
-//		txtSensorData->append(QString("BATTERY_CAPACITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CAPACITY)));
-//		txtSensorData->append(QString("WALL_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_WALL_SIGNAL)));
-//		txtSensorData->append(QString("CLIFF_LEFT_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_LEFT_SIGNAL)));
-//		txtSensorData->append(QString("CLIFF_FRONT_LEFT_SIGNAL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_LEFT_SIGNAL)));
-//		txtSensorData->append(QString("CLIFF_FRONT_RIGHT_SIGNAL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_FRONT_RIGHT_SIGNAL)));
-//		txtSensorData->append(QString("CLIFF_RIGHT_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CLIFF_RIGHT_SIGNAL)));
-//		txtSensorData->append(QString("DIGITAL_INPUTS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_DIGITAL_INPUTS)));
-//		txtSensorData->append(QString("ANALOG_SIGNAL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_ANALOG_SIGNAL)));
-//		txtSensorData->append(QString("CHARGING_SOURCES_AVAILABLE:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_CHARGING_SOURCES_AVAILABLE)));
-//		txtSensorData->append(QString("OI_MODE:\t\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_OI_MODE)));
-//		txtSensorData->append(QString("SONG_NUMBER:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_SONG_NUMBER)));
-//		txtSensorData->append(QString("SONG_IS_PLAYING:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_SONG_IS_PLAYING)));
-//		txtSensorData->append(QString("NUM_STREAM_PACKETS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_NUM_STREAM_PACKETS)));
-//		txtSensorData->append(QString("REQUESTED_VELOCITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_VELOCITY)));
-//		txtSensorData->append(QString("REQUESTED_RADIUS:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_RADIUS)));
-//		txtSensorData->append(QString("REQUESTED_RIGHT_VEL:\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_RIGHT_VEL)));
-//		txtSensorData->append(QString("REQUESTED_LEFT_VEL:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_REQUESTED_LEFT_VEL)));
-//		txtSensorData->append(QString("BATTERY_CHARGE:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CHARGE)));
-//		txtSensorData->append(QString("BATTERY_CAPACITY:\t\t%1").arg(create->coil->extractSensorFromData(data, COIL::SENSOR_BATTERY_CAPACITY)));
-//
-//		delete data;
+//		QWidget *view = CoreFactory::createGUIView(create, "RobotSpeedGraph");
+//		connect(this, SIGNAL(createConnectionChanged(Create*)), view, SLOT(registerCore(Create*)));
+//		view->show();
 //
 //	}
 
+//	else if(action == actionViewCameraView) {
+//
+//		CoreFactory::createGUIView(create, "CameraView")->show();
+//
+//	}
+
+//	else if(action == actionViewTextToSpeechView) {
+//
+//		CoreFactory::createGUIView(create, "TextToSpeechView")->show();
+//
+//	}
+//
+//	else if(action == actionViewRemoteInterface) {
+//
+//		QWidget *view = CoreFactory::createGUIView(create, "RemoteInterfaceView");
+//		connect(this, SIGNAL(createConnectionChanged(Create*)), view, SLOT(registerCore(Create*)));
+//		view->show();
+//
+//	}
+//	else if(action == actionViewHeapLogger) {
+//
+//		CoreFactory::createGUIView(create, "HeapLoggerView")->show();
+//
+//	}
+//	else if(action == actionHelpContents) {
+//
+//		InformationView *view = new InformationView("emss Interface Documentation", QIcon(":help"), "emssInterface_documentation");
+//		view->show();
+//
+//	}
+//		else if(action == actionHelpAbout) {
+//
+//		InformationView *view = new InformationView("About emss Interface", QIcon(":information"), "emssInterface_about");
+//		view->show();
+
+//	}
+	else if(action == actionViewMapObjects) {
+
+		QWidget *view = CoreFactory::createGUIView(create, "MapObjectsView");
+		connect(this, SIGNAL(createConnectionChanged(Create*)), view, SLOT(registerCore(Create*)));
+		view->show();
+
+	} else if(action == actionViewDockingStation) {
+
+		QWidget *view = CoreFactory::createGUIView(create, "DockingStationView");
+		connect(this, SIGNAL(createConnectionChanged(Create*)), view, SLOT(registerCore(Create*)));
+		view->show();
+
+	} else if (action == actionInterfaceReset){
+
+		// Close all viewports and reset
+		ignoreViewportClosedSignal = true;
+		for(int i = 0; i < viewports->count(); i++) {
+			viewports->at(i)->close();
+		}
+		viewports->clear();
+		ignoreViewportClosedSignal = false;
+		if(create) {
+			// Disconnect, reset, connect
+			if (create->isConnected()) connectDisconnect();
+			create->reset();
+			connectDisconnect();
+		}
+
+	} else if (action == actionInterfaceSaveState){
+
+		Util::saveWorldState(create);
+
+	} else if (action == actionInterfaceSettingsCore){
+
+		CoreFactory::createGUIView(create, "CoreSettingsEditor")->show();
+
+	} else if (action == actionInterfaceSettingsController){
+
+		CoreFactory::createGUIView(create, "AdditionalSettingsEditor", settings)->show();
+
+	} else if (action == actionInterfaceResetFilePaths) {
+
+		Util::resetFilePaths();
+
+	} else {
+
+		// This must be a dynamically-created action
+		if(action->data().toString() == "newtask") {
+			if(create && create->taskManager) create->taskManager->addTask(CoreFactory::createTask(create, action->text()));
+		}
+	}
+}
+
+void Interface::refreshSensors() {
 }
 
 void Interface::focusOnPoint(long x, long y){
-	//foreach(Viewport *viewport, *viewports){
-		//if(viewport) viewport->autoFocus(create->robotObject->x, create->robotObject->y);
-	//}
+	foreach(Viewport *viewport, *viewports){
+		if(viewport) viewport->autoFocus(create->tracker->getX(), create->tracker->getY());
+	}
 }
 
-void Interface::killSwitchFunction()
-{
-//	if (create->taskManager->getTask() != NULL)
-//	{
-//		create->taskManager->setCurrentTask(Task::Interrupted);
-//		Debug::print("[Interface] Interrupted");
-//	}
+void Interface::viewportAction(Viewport *viewport, QString value, long x, long y){
+	Util::viewportAction(create, viewport, value, x, y, this->sliderSpeed->value());
+}
+
+void Interface::viewportClosed(Viewport *viewport) {
+	if(!ignoreViewportClosedSignal) viewports->removeAll(viewport);
 }
 
 void Interface::currentTask(int index)

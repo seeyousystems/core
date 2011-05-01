@@ -27,7 +27,7 @@
 #include "Weight/Weight.h"
 #include "Weight/FullSpeedWeight.h"
 #include "Weight/ControllerSpeedWeight.h"
-//#include "Weight/OrientationWeight.h"
+#include "Weight/OrientationWeight.h"
 #include "Weight/CollisionAvoidanceWeight.h"
 #include "Weight/ObstacleAvoidanceWeight.h"
 #include "Weight/AccelerationFilterWeight.h"
@@ -41,7 +41,7 @@ SystemOfWeightsNavigation::SystemOfWeightsNavigation(Create *create, bool create
 	// Default weights...
 	if(createDefaultWeights) {
 		weights->append(new FullSpeedWeight(create));
-//		weights->append(new OrientationWeight(create));
+		weights->append(new OrientationWeight(create));
 		weights->append(new AccelerationFilterWeight(create));
 		weights->append(new CollisionAvoidanceWeight(create, CollisionAvoidanceWeight::AvoidanceDirectionAuto));
 		weights->append(new ObstacleAvoidanceWeight(create, ObstacleAvoidanceWeight::AvoidanceDirectionAuto));

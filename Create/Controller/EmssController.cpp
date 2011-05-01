@@ -31,9 +31,9 @@
 
 //#include "../Watchdog/ThreadMonitorWatchdogAction.h"
 
-//#include "../Map/HeatMap.h"
+#include "../Map/HeatMap.h"
 
-//#include "../Tracker/Tracker.h"
+#include "../MovementTracker/Tracker.h"
 
 
 EmssController::EmssController(Create *create, int speed, int interval) :
@@ -157,6 +157,9 @@ void EmssController::process() {
 	}
 
 	// Object detected?
+
+
+
 	if (sharpIRSensor < create->intSetting("Robot_SharpIRSensorCutoffValue")) {
 		emit signalObjectDetected(sharpIRSensor, 0, irCollisionOpacity, irCollisionSize ); // Angle is 0 because it is straight ahead always!
 	}
@@ -168,7 +171,7 @@ void EmssController::process() {
 		emit signalChangedWheelSpeed((int)Lwheel, (int)Rwheel);
 
 		// Register on heat map as safe area
-		//create->heatMap->registerHeat(ColorMap::OpenAreaChannel, create->tracker->getX(), create->tracker->getY(), openAreaOpacity, openAreaSize);
+		create->heatMap->registerHeat(ColorMap::OpenAreaChannel, create->tracker->getX(), create->tracker->getY(), openAreaOpacity, openAreaSize);
 	}
 
 	// Time for debug info?

@@ -3,8 +3,37 @@ TARGET = Create
 QT += core \
     gui \
     xml \
+    opengl \
     network
-HEADERS += Navigation/Weight/OrientationWeight.h \
+HEADERS += Library/TerrainPoint.h \
+    Library/DockIR.h \
+    GUI/MapObjectsView.h \
+    GUI/MapOverview.h \
+    Task/NavigationTask.h \
+    Library/DockingStation.h \
+    Map/FadingCollisionMap.h \
+    Map/GridMap.h \
+    Map/MapObject/DockingStationMapObject.h \
+    Map/MapObject/MarkerMapObject.h \
+    Map/MapObject/NavPathMapObject.h \
+    Map/MapObject/NavigationMapObject.h \
+    Map/MapObject/RobotMapObject.h \
+    Map/MapObject/TrackerMapObject.h \
+    Map/MapObject/MapObject.h \
+    Map/ObjectMap.h \
+    Map/StructureMap.h \
+    Map/TerrainMap.h \
+    Map/ColorMap.h \
+    Map/HeatMap.h \
+    Map/MapMeta.h \
+    GUI/DrawCanvas.h \
+    GUI/DrawCanvasGL.h \
+    GUI/Viewport.h \
+    Library/Util.h \
+    Library/KMLGroundOverlay.h \
+    Map/PhysicalMap.h \
+    Map/Map.h \
+    Navigation/Weight/OrientationWeight.h \
     Navigation/Weight/ObstacleAvoidanceWeight.h \
     Navigation/Weight/CollisionAvoidanceWeight.h \
     Library/RFIDDBase.h \
@@ -50,7 +79,6 @@ HEADERS += Navigation/Weight/OrientationWeight.h \
     COIL/ArduinoCOIL.h \
     Task/TestMoveTask.h \
     Controller/SeeYouController.h \
-    GUI/TaskEditor.h \
     JoystickView.h \
     interface.h \
     COIL/COIL.h \
@@ -71,9 +99,30 @@ HEADERS += Navigation/Weight/OrientationWeight.h \
     Library/Math/vector2.h \
     Library/Math.h \
     Library/SleeperThread.h \
-    Library/Util.h \
     create.h
-SOURCES += Library/RFIDDBase.cpp \
+SOURCES += GUI/MapObjectsView.cpp \
+    GUI/MapOverview.cpp \
+    Task/NavigationTask.cpp \
+    Map/FadingCollisionMap.cpp \
+    Map/GridMap.cpp \
+    Map/MapObject/DockingStationMapObject.cpp \
+    Map/MapObject/MarkerMapObject.cpp \
+    Map/MapObject/NavPathMapObject.cpp \
+    Map/MapObject/NavigationMapObject.cpp \
+    Map/MapObject/RobotMapObject.cpp \
+    Map/MapObject/TrackerMapObject.cpp \
+    Map/MapObject/MapObject.cpp \
+    Map/ObjectMap.cpp \
+    Map/StructureMap.cpp \
+    Map/TerrainMap.cpp \
+    Map/ColorMap.cpp \
+    Map/HeatMap.cpp \
+    GUI/Viewport.cpp \
+    Library/Util.cpp \
+    Library/KMLGroundOverlay.cpp \
+    Map/PhysicalMap.cpp \
+    Map/Map.cpp \
+    Library/RFIDDBase.cpp \
     GUI/OptionsDialog.cpp \
     GUI/WeightEditor.cpp \
     Library/Math/gps.cpp \
@@ -104,7 +153,6 @@ SOURCES += Library/RFIDDBase.cpp \
     COIL/ArduinoCOIL.cpp \
     Task/TestMoveTask.cpp \
     Controller/SeeYouController.cpp \
-    GUI/TaskEditor.cpp \
     JoystickView.cpp \
     interface.cpp \
     COIL/COIL.cpp \
@@ -122,7 +170,7 @@ SOURCES += Library/RFIDDBase.cpp \
     main.cpp \
     create.cpp
 FORMS += create.ui
-RESOURCES += 
+RESOURCES += DefaultResources/Icons.qrc
 INCLUDEPATH += 
 RESOURCES += 
 unix:HEADERS += qextserialport/posix_qextserialport.h

@@ -24,7 +24,9 @@
 #include "JoystickView.h"
 #include "Library/Debug.h"
 
+#include "GUI/Viewport.h"
 #include "GUI/WeightEditor.h"
+#include "GUI/MapOverview.h"
 
 class QPushButton;
 
@@ -33,6 +35,26 @@ class Interface : public QWidget
     Q_OBJECT
 
 private:
+
+
+    QAction	 	*actionInterfaceExit;
+	QAction	 	*actionInterfaceReset;
+	QAction	 	*actionInterfaceSaveState;
+	QAction	 	*actionInterfaceSettingsCore;
+	QAction	 	*actionInterfaceSettingsController;
+	QAction	 	*actionInterfaceResetFilePaths;
+	QMenu 		*menuView;
+	QAction	 	*actionViewNewViewport;
+	QAction	 	*actionViewTaskEditor;
+	QAction	 	*actionViewWeightEditor;
+	QAction	 	*actionViewCameraView;
+	QAction	 	*actionViewTextToSpeechView;
+	QAction	 	*actionViewRemoteInterface;
+	QAction	 	*actionViewHeapLogger;
+	QAction	 	*actionViewMapObjects;
+	QAction	 	*actionViewDockingStation;
+	QAction		*actionViewRobotControlPanel;
+	QAction		*actionViewRobotSpeedGraph;
 	QTextEdit *txtSensorData;
     JoystickView *joystick;
     JoystickView *joystickFluidController;
@@ -94,11 +116,15 @@ private:
 	QGroupBox *createSensorExclusiveGroup();
 
 	WeightEditor *weightEditor;
+	QList<Viewport*> *viewports;
+
+	bool ignoreViewportClosedSignal;
 
 
 
 public:
 	Create *create;
+	QSettings *settings;
 
 public:
     Interface(QWidget *parent = 0);
@@ -114,11 +140,10 @@ public slots:
 	void currentTask(int index);
 
 	void refreshSensors();
-	//void menuAction(QAction *action);
-	//void viewportAction(Viewport *viewport, QString value, long x, long y);
+	void menuAction(QAction *action);
+	void viewportAction(Viewport *viewport, QString value, long x, long y);
+	void viewportClosed(Viewport *viewport);
 	void focusOnPoint(long x, long y);
-
-	void killSwitchFunction();
 
 signals:
 	void createConnectionChanged(Create *create); // Emitted when core connects/disconnects.

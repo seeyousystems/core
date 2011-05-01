@@ -26,8 +26,8 @@
 
 #include "../Library/Debug.h"
 
-//#include "../Map/ColorMap.h"
-//#include "../Map/HeatMap.h"
+#include "../Map/ColorMap.h"
+#include "../Map/HeatMap.h"
 
 
 MovementTracker::MovementTracker(QString name, Create *create) : CoreObject(name, create){

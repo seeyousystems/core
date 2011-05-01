@@ -30,7 +30,7 @@ void ArduinoController::stop() {
 
 	// Request a stop and wait for the controller to exit its process loop
 	stopRequested = true;
-	while(this->isRunning() == true) SleeperThread::msleep(create->intSetting("ARDUINOCONTROLLER_STOP_REQUEST_INTERVAL"));
+	while(this->isRunning() == true) SleeperThread::msleep(50);//SleeperThread::msleep(create->intSetting("ARDUINOCONTROLLER_STOP_REQUEST_INTERVAL"));
 
 	Debug::print("[ArduinoController] %1 Controller stopped", name);
 }

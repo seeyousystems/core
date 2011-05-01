@@ -5,7 +5,7 @@
  *
  *  ===========================================================================
  *
- *  Copyright 2008 Daniel Kruesi (Dan Krusi) and David Grob
+ *  Copyright 2008-2009 Daniel Kruesi (Dan Krusi) and David Grob
  *
  *  This file is part of the emms framework.
  *
@@ -32,74 +32,36 @@
 #include <QSettings>
 #include <QFileInfo>
 #include <QInputDialog>
+#include <QImage>
 
 #include "../Library/Math.h"
 #include "../Library/Debug.h"
 
-namespace Util {
+class Create;
+class Viewport;
 
 
-static void inline resetPainter(QPainter &painter, double scale = 1.0) {
-	painter.setOpacity(1.0);
-	painter.resetTransform();
-	painter.resetMatrix();
-	painter.setPen(Qt::black);
-	painter.setBrush(Qt::white);
-	painter.setFont(QFont());
-	painter.scale(scale, scale);
-}
+class Util {
 
-static void setTextEditAsLogger(QTextEdit *textEdit) {
-	textEdit->setReadOnly(true);
-	textEdit->setFontFamily("Lucida Console");
-	textEdit->setWordWrapMode(QTextOption::NoWrap);
-	QFont fntConsole = textEdit->font();
-	//fntConsole.setPointSize(fntConsole.pointSize()+2);
-	textEdit->setFont(fntConsole);
-	QPalette palette = textEdit->palette();
-	palette.setColor(QPalette::Base, Qt::darkBlue);
-	palette.setColor(QPalette::Text, Qt::white);
-	textEdit->setPalette(palette);
-}
+public:
 
-static void drawSpline(QPainter &painter, Spline1D *splineX, Spline1D *splineY, long movementScale, QColor color, int resolution) {
-	// Draw nav spline
-	QPen pen = painter.pen();
-	pen.setWidth(1);
-	pen.setColor(color);
-	painter.setPen(pen);
-	for (int i = 0; i < splineX->getNodeCount() - 1; i++) {
-
-		for (int t = 1; t < resolution+1; t++) {
-			double tt = ((double)t) / (double)resolution;
-			double x = splineX->getValue(i, tt) / movementScale;
-			double y = splineY->getValue(i, tt) / movementScale;
-			painter.drawPoint((int)x, (int)-y);
-		}
-	}
-}
-
-static void setSettingsFromTextData(QSettings *settings, QString textData) {
-	settings->clear();
-	QStringList data = textData.split('\n');
-	for(int i = 0; i < data.count(); i++) {
-		QStringList keyValue = data.at(i).split('=');
-		if(keyValue[0] != "") {
-			settings->setValue(keyValue[0], keyValue[1]);
-		}
-	}
-}
-
-static QString getSettingsFilePath(QString name) {
-	QSettings settings("emss", "Code");
-	QString filePath = settings.value(QString("SETTINGS_%1").arg(name)).toString();
-	QFileInfo fileInfo(filePath);
-	if(fileInfo.exists() == false) {
-		filePath = QInputDialog::getText(NULL, QString("%1 Settings").arg(name), "Please enter the full settings file path:");
-		settings.setValue(QString("SETTINGS_%1").arg(name), filePath);
-	}
-	return filePath;
-}
+	static void resetPainter(QPainter &painter, double scale = 1.0);
+	static void setTextEditAsLogger(QTextEdit *textEdit);
+	static void drawSpline(QPainter &painter, Spline1D *splineX, Spline1D *splineY, long movementScale, QColor color, int resolution);
+	static void setSettingsFromTextData(QSettings *settings, QString textData, bool clearOldSettings = true);
+	static QString getFilePath(QString defaultName, QString title, QString key, bool requiresCore, QString error = "");
+	static QString getSettingsFilePath(QString name);
+	static QString getResourcesFilePath();
+	static QString getLogsFilePath();
+	static void resetFilePaths();
+	static GPSPosition gpsPositionFromString(QString latitudeLongitudeHeight);
+	static bool isEqualQColor(QRgb reference, QRgb color, int tolerance);
+	static QRgb convertStringToRGB(QString string);
+	static void viewportAction(Create *create, Viewport *viewport, QString value, long x, long y, int speed);
+	static void refreshSensors( Create *create, QTextEdit *txtSensorData );
+	static void sendFingerprintMessage(Create *create, long fingerprintWaitTime);
+	static void saveWorldState(Create *create);
+	static QString getTextDataFromResource(QString name);
 
 };
 

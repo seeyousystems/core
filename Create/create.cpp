@@ -4,6 +4,20 @@
 #include "COIL/COIL.h"
 #include "COIL/ArduinoCOIL.h"
 
+#include "Map/GridMap.h"
+#include "Map/HeatMap.h"
+#include "Map/TerrainMap.h"
+#include "Map/ObjectMap.h"
+#include "Map/PhysicalMap.h"
+#include "Map/StructureMap.h"
+#include "Map/FadingCollisionMap.h"
+
+#include "Map/MapObject/RobotMapObject.h"
+#include "Map/MapObject/NavPathMapObject.h"
+#include "Map/MapObject/NavigationMapObject.h"
+#include "Map/MapObject/MarkerMapObject.h"
+#include "Map/MapObject/DockingStationMapObject.h"
+
 #include "Library/Debug.h"
 #include "Library/Util.h"
 #include "Library/SleeperThread.h"
@@ -11,6 +25,7 @@
 
 #include "Library/Joystick2D.h"
 #include "Library/HeapLogger.h"
+#include "Library/DockingStation.h"
 
 #include "MovementTracker/Tracker.h"
 #include "MovementTracker/AveragedTracker.h"
@@ -43,43 +58,106 @@ int Create::arduino_active = 1;
 int Create::network_active = 1;
 Create::Create()
 {
+	// Init core based on the emssCore.config file which is located in the resources path...
+	initCreate(new QSettings(("DefaultResources/emssCore.config"), QSettings::IniFormat));
+
+//	// NULL everything for safety of deletion
+//	coil = NULL;
+//	arduino = NULL;
+//
+//	gridMap = NULL;
+//	heatMap = NULL;
+//	terrainMap = NULL;
+//	objectMap = NULL;
+//	physicalMap = NULL;
+//	structureMap = NULL;
+//	fadingCollisionMap = NULL;
+//
+//	tracker = NULL;
+//	controller = NULL;
+//	arduinoController = NULL;
+//
+//	navigation = NULL;
+//
+//	taskManager = NULL;
+//
+//	settings = NULL;
+//
+//	vffAI = NULL;
+//
+//	network = NULL;
+//
+//	joystick = new Joystick2D();
+//
+//	dockingStation = new DockingStation(this);
+//
+//	// Init maps and objects
+//	initMapsAndObjects();
+//
+//	// Load settings and default values if needed
+//	settings = new QSettings(QString("Resources/emssCore.config"), QSettings::IniFormat);
+//
+//	// Init	QLCDNumber *lcdLeft;
+//
+//	//this->scale = this->longSetting("MOVEMENT_SCALE");
+//	this->robotStartingPositionX = this->longSetting("ROBOT_STARTING_POSITION_X_MM");
+//	this->robotStartingPositionY = this->longSetting("ROBOT_STARTING_POSITION_Y_MM");
+//	//this->mapWidth = this->longSetting("MAP_HEIGHT_MM");
+//	//this->mapHeight = this->longSetting("MAP_WIDTH_MM");
+//	this->robotSize = this->longSetting("ROBOT_SIZE_MM");
+//	this->gridSize = this->longSetting("GRID_SIZE_MM");
+//	this->heatSpotSize = this->longSetting("HEAT_SPOT_SIZE_MM");
+//	connected = false;
+//
+//	// Init maps and objects
+//	//initMapsAndObjects();
+}
+
+Create::Create(QSettings *settings) {
+	// Init core based on settings given as argument
+	initCreate(settings);
+}
+
+void Create::initCreate(QSettings *settings) {
+
+	// Grab reference to settings object
+	assert(settings!=NULL);
+	this->settings = settings;
+
 	// NULL everything for safety of deletion
 	coil = NULL;
-	arduino = NULL;
+
+	gridMap = NULL;
+	heatMap = NULL;
+	terrainMap = NULL;
+	objectMap = NULL;
+	physicalMap = NULL;
+	structureMap = NULL;
+	fadingCollisionMap = NULL;
 
 	tracker = NULL;
 	controller = NULL;
-	arduinoController = NULL;
 
 	navigation = NULL;
 
 	taskManager = NULL;
 
-	settings = NULL;
+	//remoteInterface = NULL;
 
-	vffAI = NULL;
+	//watchdog = NULL;
 
-	network = NULL;
-
+	// Create a default joystick for use throughout the core
 	joystick = new Joystick2D();
 
-	// Load settings and default values if needed
-	settings = new QSettings(QString("Resources/emssCore.config"), QSettings::IniFormat);
+	dockingStation = new DockingStation(this);
 
-	// Init	QLCDNumber *lcdLeft;
-
-	this->scale = this->longSetting("MOVEMENT_SCALE");
-	this->robotStartingPositionX = this->longSetting("ROBOT_STARTING_POSITION_X_MM");
-	this->robotStartingPositionY = this->longSetting("ROBOT_STARTING_POSITION_Y_MM");
-	this->mapWidth = this->longSetting("MAP_HEIGHT_MM");
-	this->mapHeight = this->longSetting("MAP_WIDTH_MM");
-	this->robotSize = this->longSetting("ROBOT_SIZE_MM");
-	this->gridSize = this->longSetting("GRID_SIZE_MM");
-	this->heatSpotSize = this->longSetting("HEAT_SPOT_SIZE_MM");
+	// Init
 	connected = false;
 
 	// Init maps and objects
-	//initMapsAndObjects();
+	initMapsAndObjects();
+
+	Debug::print("[Core] initialized");
 }
 
 Create::~Create()
@@ -87,6 +165,14 @@ Create::~Create()
 	if(coil) delete coil;
 
 	if(arduino) delete arduino;
+
+	if(gridMap) delete gridMap;
+	if(heatMap) delete heatMap;
+	if(terrainMap) delete terrainMap;
+	if(objectMap) delete objectMap;
+	if(physicalMap) delete physicalMap;
+	if(structureMap) delete structureMap;
+	if(fadingCollisionMap) delete fadingCollisionMap;
 
 	if(controller) delete controller;
 
@@ -105,6 +191,8 @@ Create::~Create()
 	if(network) delete network;
 
 	if (joystick) delete joystick;
+
+	if (dockingStation) delete dockingStation;
 }
 
 bool Create::connect(QString strSerialPort, bool safeMode)
@@ -127,6 +215,8 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	///coil = new COIL(strSerialPort); // no Core
 	coil = CoreFactory::createCOIL(this, "COIL");
 	assert(coil);
+//	QObject::connect(coil, SIGNAL(disconnected()), this, SLOT(abort()));
+//	QObject::connect(coil, SIGNAL(incompleteSensorDataRead()), this, SLOT(abort()));
 
 	// Start OI
 	if(coil->startOI() == -1 ) {
@@ -162,6 +252,11 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	// Reset LED's
 	coil->setLEDState(COIL::LED_ADVANCE | COIL::LED_PLAY, 0, 255);
 
+
+
+	// Reset objectmap
+	objectMap->deleteAllObjects();
+
 	// Init tracker module
 	if(tracker) { delete tracker; tracker = NULL; }
 	tracker = CoreFactory::createTracker(this, strTracker);
@@ -182,30 +277,15 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 	}
 
 
-	//	// Init movement tracker
-	//	/*if(strMovementTracker == "Raw Movement Tracker")*/ {
-	//		movementTracker = new RawMovementTracker(this, robotStartingPositionX, robotStartingPositionY, 0);
-	//	}
-
-		// Init controller
-	//	if(controller) { delete controller; controller = NULL; }
-	//	controller = new SeeYouController(this, intSetting("EMSSCONTROLLER_SPEED"), intSetting("EMSSCONTROLLER_INTERVAL"));
-	//	//controller = new BlockDriveController(this, intSetting("BLOCKDRIVECONTROLLER_INTERVAL"), intSetting("BLOCKDRIVECONTROLLER_SPEED"), intSetting("BLOCKDRIVECONTROLLER_ANGLE"), intSetting("BLOCKDRIVECONTROLLER_DISTANCE"), BlockDriveController::Off);
-	//	assert(controller);
+//	// Re-place docking station
+	dockingStation->position = Trafo2D::trans(longSetting("Robot_DockingStation_StartingPositionX_mm"),longSetting("Robot_DockingStation_StartingPositionY_mm")) * Trafo2D::rot(Rad(doubleSetting("Robot_DockingStation_StartingRotation_deg")));
+	new DockingStationMapObject(objectMap, dockingStation);
 
 	// Init Communication with Arduino
 	if(arduino_active) {
 		if(arduino) { delete arduino; arduino = NULL; }
 		arduino = new ArduinoCOIL("/dev/ttyUSB1"); // no Core
 		assert(arduino);
-		//	// Establish Communication
-		//	if(arduino.startCOM() == -1)
-		//	{
-		//		Debug::error("[Create] could not connect to uController");
-		//		delete arduino;
-		//		arduino = NULL;
-		//		return false; // TODO:
-		//	}
 
 		// Wait for 2 seconds for Arduino to be stable
 		SleeperThread::msleep(2000);
@@ -246,6 +326,13 @@ bool Create::connect(QString strSerialPort, bool safeMode)
 
 	// Register misc. stuff with objects
 	tracker->connectController(controller);
+
+	if(boolSetting("Map_StructureMap_AutomaticallyAddStructurePoints_Enabled")){
+		structureMap->connectController(controller);
+	}
+
+	fadingCollisionMap->connectController(controller);
+	heatMap->connectController(controller);
 
 	// Success!
 	connected = true;
@@ -328,35 +415,11 @@ bool Create::disconnect() {
 	return true;
 }
 
-void Create::robotMoved(long x, long y, double rotation) {
-
-	// Update robot location
-//	robotObject->x = mmToPixels(x);
-//	robotObject->y = mmToPixels(y);
-//	robotObject->rotation = -rotation; // Core/COIL has a anti-clockwise positive rotation
-
-	// Update nav path and heat map
-	//navPathObject->addNavPoint(x / scale,y / scale);
-	//heatMap->registerHeat(ColorMap::OpenAreaChannel, x / scale, y / scale, doubleSetting("REGISTERHEAT_OPACITY_OPENAREA"), mmToPixels(heatSpotSize));
-
-	emit focusOnPoint(x, y); // Signal to focus onto this point
-}
-
-void Create::robotCollided(long x, long y){
-
-	//heatMap->registerHeat(ColorMap::CollisionAreaChannel, x / scale, y / scale, doubleSetting("REGISTERHEAT_OPACITY_COLLISION"), mmToPixels(heatSpotSize));
-}
-
-void Create::objectDetected(long x, long y) {
-
-	//heatMap->registerHeat(ColorMap::CollisionAreaChannel, x / scale, y / scale, doubleSetting("REGISTERHEAT_OPACITY_OBJECT"), mmToPixels(heatSpotSize));
-}
-
-inline long Create::mmToPixels(long mm) {
+long Create::mmToPixels(long mm) {
 	return mm / scale;
 }
 
-inline long Create::pixelsTomm(long pixels) {
+long Create::pixelsTomm(long pixels) {
 	return pixels * scale;
 }
 
@@ -384,29 +447,57 @@ void Create::interruptTask()
 }
 
 void Create::initMapsAndObjects(){
-//	gridMap = new GridMap(this, mmToPixels(gridSize));
-//	heatMap = new HeatMap(this, mmToPixels(mapWidth), mmToPixels(mapHeight));
-//	terrainMap = new TerrainMap(this, mmToPixels(mapWidth), mmToPixels(mapHeight));
-//	objectMap = new ObjectMap(this, mmToPixels(mapWidth), mmToPixels(mapHeight));
-//	physicalMap = new PhysicalMap(this, this->stringSetting("PHYSICALMAP_FILENAME"), this->longSetting("PHYSICALMAP_SCALE"));
-//	robotObject = new RobotObject(objectMap, mmToPixels(robotStartingPositionX), mmToPixels(robotStartingPositionY), mmToPixels(robotSize), mmToPixels(robotSize));
-//	navPathObject = new NavPathObject(objectMap);
-//	navPointsObject = new NavPointsObject(objectMap, NULL, scale);
-//	navigationObject = new NavigationObject(objectMap, NULL, scale);
+
+	// Grab latest settings
+	scale = this->longSetting("Map_Scale");
+	mapWidth = this->longSetting("Map_Width_mm");
+	mapHeight = this->longSetting("Map_Height_mm");
+
+	// Destroy all objects
+	if(gridMap) delete gridMap;
+	if(heatMap) delete heatMap;
+	if(terrainMap) delete terrainMap;
+	if(objectMap) delete objectMap;
+	if(physicalMap) delete physicalMap;
+	if(structureMap) delete structureMap;
+	if(fadingCollisionMap) delete fadingCollisionMap;
+
+	// Re-allocate all maps...
+
+	gridMap = new GridMap(this, longSetting("Map_GridMap_GridSize_mm"));
+	physicalMap = new PhysicalMap(this, this->stringSetting("Map_PhysicalMap_Filename").replace("$ResourcesPath", Util::getResourcesFilePath()), this->longSetting("Map_PhysicalMap_Scale"));
+
+	// Try to determine the world width/height at this point from
+	// the physical map. If there is no physical map, fallback on the Core config...
+	if(physicalMap->image.isNull()) {
+		mapWidth = this->longSetting("Map_Width_mm");
+		mapHeight = this->longSetting("Map_Height_mm");
+	} else {
+		mapWidth = physicalMap->width();
+		mapHeight = physicalMap->height();
+	}
+
+	heatMap = new HeatMap(this, mapWidth, mapHeight);
+	terrainMap = new TerrainMap(this, mapWidth, mapHeight);
+	objectMap = new ObjectMap(this);
+	structureMap = new StructureMap(this);
+	fadingCollisionMap = new FadingCollisionMap(this);
 }
 
 void Create::reset(){
 	if(connected == true) {
 		stop();
 		disconnect();
-		//initMapsAndObjects();
+		initMapsAndObjects();
 		//connect(connectionController, connectionMovementTracker, connectionSerialPort, connectionForceConnect);
 		start();
 	} else {
-		//initMapsAndObjects();
+		initMapsAndObjects();
 	}
 	emit coreReset();
 }
+
+
 
 bool Create::isConnected() {
 	return connected;

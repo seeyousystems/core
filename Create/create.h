@@ -13,16 +13,14 @@
 // Forwards declarations
 class COIL;
 class ArduinoCOIL;
-//class GridMap;
-//class HeatMap;
-//class TerrainMap;
-//class ObjectMap;
-//class PhysicalMap;
 
-//class RobotObject;
-//class NavPathObject;
-//class NavPointsObject;
-//class NavigationObject;
+class GridMap;
+class HeatMap;
+class TerrainMap;
+class ObjectMap;
+class PhysicalMap;
+class StructureMap;
+class FadingCollisionMap;
 
 class Tracker;
 class Controller;
@@ -36,6 +34,8 @@ class Task;
 class TaskManager;
 
 class Network;
+
+class DockingStation;
 
 class Create : public QObject
 {
@@ -71,16 +71,13 @@ public:
 	VFF *vffAI;
 	Network *network;
 
-//	GridMap *gridMap;
-//	HeatMap *heatMap;
-//	TerrainMap *terrainMap;
-//	ObjectMap *objectMap;
-//	PhysicalMap *physicalMap;
-//
-//	RobotObject *robotObject;
-//	NavPathObject *navPathObject;
-//	NavPointsObject *navPointsObject;
-//	NavigationObject *navigationObject;
+	GridMap *gridMap;
+	HeatMap *heatMap;
+	TerrainMap *terrainMap;
+	ObjectMap *objectMap;
+	PhysicalMap *physicalMap;
+	StructureMap *structureMap;
+	FadingCollisionMap *fadingCollisionMap;
 
 	Tracker *tracker;
 	Controller *controller;
@@ -92,20 +89,23 @@ public:
 
 	TaskManager *taskManager;
 
-	QSettings *settings;;
+	QSettings *settings;
+
+	DockingStation *dockingStation;
 
 
 public:
+	Create(QSettings *settings);
 	Create();
 	virtual ~Create();
 	bool connect(QString strSerialPort, bool safeMode);
 	bool isConnected();
-	inline long mmToPixels(long mm);
-	inline long pixelsTomm(long pixels);
+	long mmToPixels(long mm);
+	long pixelsTomm(long pixels);
 	void addTask(Task *task);
+	void initMapsAndObjects();
 	int stopTask();
 	void interruptTask();
-	void initMapsAndObjects();
 
 	// Global Settings
 	int intSetting(QString key);
@@ -119,12 +119,9 @@ public:
 private:
 	static int arduino_active;			//TODO: fail safe debug mode status
 	static int network_active;			//TODO: fail safe debug mode status
-	//void initCreate(QSettings *settings);
+	void initCreate(QSettings *settings);
 
 public slots:
-	void robotMoved(long x,long y, double rotation);
-	void robotCollided(long x, long y);
-	void objectDetected(long x, long y);
 	bool disconnect();
 	void start();
 	void stop();

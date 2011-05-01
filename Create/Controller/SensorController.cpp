@@ -83,8 +83,8 @@ void SensorController::run()
 		// Update obstacle avoidance algorithm (we are working with cm not mm)
 		//create->vffAI->run();
 		//create->vffAI->run( leftPinger, rightIR, frontIR, leftIR, rightPinger, x/10, y/10 );
-		if(create->boolSetting("SENSORCONTROLLER_DEBUG"))
-			printf("[ArduinoController] Left: %3d  UpperLeft: %3d  Front: %3d  UpperRight: %3d  Right: %3d  Heading: %d\n", sensorPacket.leftPinger, sensorPacket.leftIR, sensorPacket.frontIR, sensorPacket.rightIR, sensorPacket.rightPinger, sensorPacket.heading);
+//		if(create->boolSetting("SensorController_Debug"))
+//			printf("[ArduinoController] Left: %3d  UpperLeft: %3d  Front: %3d  UpperRight: %3d  Right: %3d  Heading: %d\n", sensorPacket.leftPinger, sensorPacket.leftIR, sensorPacket.frontIR, sensorPacket.rightIR, sensorPacket.rightPinger, sensorPacket.heading);
 		//create->vffAI->run();
 //		Debug::print("[SensorController] RFID: %1", sensorPacket.RFID);
 //		Debug::print("Test: %1\n", ++x);

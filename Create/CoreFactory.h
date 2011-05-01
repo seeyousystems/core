@@ -63,7 +63,7 @@ public:
 	static Controller* createController(Create *create, QString name);
 //	static RemoteInterface* createRemoteInterface(Core *core);
 //	static Watchdog* createWatchdog(Core *c);
-//	static QWidget* createGUIView(Core *core, QString name, QSettings *additionalSettings = NULL);
+	static QWidget* createGUIView(Create *create, QString name, QSettings *additionalSettings = NULL);
 	static Task* createTask(Create *create, QString name = "");
 };
 

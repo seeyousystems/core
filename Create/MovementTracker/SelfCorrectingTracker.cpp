@@ -24,7 +24,7 @@
 
 #include "SelfCorrectingTracker.h"
 
-//#include "../Map/PhysicalMap.h"
+#include "../Map/PhysicalMap.h"
 #include "../Controller/Controller.h"
 #include "../Library/Math.h"
 
@@ -65,10 +65,10 @@ void SelfCorrectingTracker::registerObjectDetected(double distance, double angle
 		a = 0;
 		while(!found && a < amax) {
 			Trafo2D pos = ct.collision * Trafo2D::rot(Rad(a)) * Trafo2D::trans(0, r);
-//			if(create->physicalMap->getAreaType(pos.trans().x(), pos.trans().y()) != PhysicalMap::PhysicalMapAreaTypeOpen) {
-//				ct.closestWall = pos;
-//				found = true;
-//			}
+			if(create->physicalMap->getAreaType(pos.trans().x(), pos.trans().y()) != PhysicalMap::PhysicalMapAreaTypeOpen) {
+				ct.closestWall = pos;
+				found = true;
+			}
 			a += astep;
 		}
 		r += rstep;

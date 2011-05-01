@@ -27,8 +27,8 @@
 #include "../create.h"
 #include "../Library/Debug.h"
 #include "../MovementTracker/Tracker.h"
-//#include "../Map/HeatMap.h"
-//#include "../Map/FadingCollisionMap.h"
+#include "../Map/HeatMap.h"
+#include "../Map/FadingCollisionMap.h"
 
 #include <limits.h>
 
@@ -164,11 +164,11 @@ long Navigation::getMaxOpenAreaDistanceFromMap(CollisionSource source, Collision
 		if(position.trans().x() < 0 || position.trans().y() < 0 || position.trans().x() > create->mapWidth || position.trans().y() > create->mapHeight) return INT_MAX;
 
 		// Return if i if collision detected at position
-//		if(source == CollisionSourceHeatMap) {
-//			if (create->heatMap->getChannelValue(HeatMap::CollisionAreaChannel,  (int)(position.trans().x()), (int)(position.trans().y())) > 0.0) return i;
-//		} else if (source == CollisionSourceFadingCollisionMap) {
-//			if (create->fadingCollisionMap->isPointWithinCollisionArea(position.trans())) return i;
-//		}
+		if(source == CollisionSourceHeatMap) {
+			if (create->heatMap->getChannelValue(HeatMap::CollisionAreaChannel,  (int)(position.trans().x()), (int)(position.trans().y())) > 0.0) return i;
+		} else if (source == CollisionSourceFadingCollisionMap) {
+			if (create->fadingCollisionMap->isPointWithinCollisionArea(position.trans())) return i;
+		}
 	}
 
 	return INT_MAX;
@@ -181,11 +181,11 @@ int Navigation::getWallDistanceFromMap(CollisionSource source){
 	for(int i = 0; i < create->intSetting("Robot_WallSensorRange_mm"); i++){
 		//todo:abraham fix this
 		position = create->tracker->getTransformation() * Trafo2D::rot(Rad(-90)) * Trafo2D::trans(0, (create->intSetting("Robot_Diameter_mm")/2) + i);
-//		if(source == CollisionSourceHeatMap) {
-//			if (create->heatMap->getChannelValue(HeatMap::CollisionAreaChannel,  (int)(position.trans().x()), (int)(position.trans().y())) > 0.0) return i;
-//		} else if (source == CollisionSourceFadingCollisionMap) {
-//			if (create->fadingCollisionMap->isPointWithinCollisionArea(position.trans())) return i;
-//		}
+		if(source == CollisionSourceHeatMap) {
+			if (create->heatMap->getChannelValue(HeatMap::CollisionAreaChannel,  (int)(position.trans().x()), (int)(position.trans().y())) > 0.0) return i;
+		} else if (source == CollisionSourceFadingCollisionMap) {
+			if (create->fadingCollisionMap->isPointWithinCollisionArea(position.trans())) return i;
+		}
 	}
 	return INT_MAX;
 }

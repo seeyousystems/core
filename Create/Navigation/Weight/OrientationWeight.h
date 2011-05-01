@@ -34,7 +34,7 @@
 
 #include "../../MovementTracker/Tracker.h"
 #include "../../Navigation/Navigation.h"
-//#include "../../Map/MapObject/MarkerMapObject.h"
+#include "../../Map/MapObject/MarkerMapObject.h"
 #include "../../Library/Debug.h"
 
 class OrientationWeight : public Weight {

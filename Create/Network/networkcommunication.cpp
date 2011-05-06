@@ -218,11 +218,32 @@ void NetworkCommunication::run()
 								/*
 								 * Prevent tag to be overwritten with zero
 								 */
-								if (netPacket.RFID != 0)
-								{
+								//if (netPacket.RFID != 0)
+								//{
 									//create->controller->tags(netPacket.RFID);
-									//Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
+									Debug::print("[NetworkCommunication] RFID Tag %1", netPacket.RFID);
+								//}
+								if (netPacket.RFID == 52)
+								{
+									create->addTask(new TestMoveTask(create, "Room201"));
 								}
+								else if (netPacket.RFID == 57)
+								{
+									//create->addTask(new TestMoveTask(create, "Offices"));
+								}
+								else if (netPacket.RFID == 1)
+								{
+									//create->addTask(new TestMoveTask(create, "SeniorLab"));
+								}
+								else if (netPacket.RFID == 47)
+								{
+									//create->addTask(new TestMoveTask(create, "Room220A"));
+								}
+								else if (netPacket.RFID == 84)
+								{
+									//create->addTask(new TestMoveTask(create, "Room220"));
+								}
+
 							}
 							//IF OVERRIDE IS ON
 							else if(netPacket.override == 1)

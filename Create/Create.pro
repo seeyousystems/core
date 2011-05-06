@@ -5,7 +5,10 @@ QT += core \
     xml \
     opengl \
     network
-HEADERS += Library/TerrainPoint.h \
+HEADERS += Navigation/Weight/RightWallFollowerWeight.h \
+    Task/WallFollowerTask.h \
+    Navigation/Weight/WallFollowerWeight.h \
+    Library/TerrainPoint.h \
     Library/DockIR.h \
     GUI/MapObjectsView.h \
     GUI/MapOverview.h \
@@ -100,7 +103,8 @@ HEADERS += Library/TerrainPoint.h \
     Library/Math.h \
     Library/SleeperThread.h \
     create.h
-SOURCES += GUI/MapObjectsView.cpp \
+SOURCES += Task/WallFollowerTask.cpp \
+    GUI/MapObjectsView.cpp \
     GUI/MapOverview.cpp \
     Task/NavigationTask.cpp \
     Map/FadingCollisionMap.cpp \

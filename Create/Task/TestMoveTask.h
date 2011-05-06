@@ -62,6 +62,8 @@ public:
 	short customMovevr;
 	double customTime;
 	double customDistance;
+	int resetX;
+	int resetY;
 
 public:
 	TestMoveTask(Create *create, QString move, TaskPriority priority = Task::Normal);

@@ -28,6 +28,8 @@
 #include "../Navigation/Navigation.h"
 #include "../Navigation/Weight/FullSpeedWeight.h"
 #include "../Navigation/Weight/JoystickWeight.h"
+#include "../Navigation/Weight/RightWallFollowerWeight.h"
+
 //#include "../Navigation/Weight/RemoteControlWeight.h"
 #include "../Navigation/Weight/CollisionAvoidanceWeight.h"
 #include "../Navigation/Weight/AccelerationFilterWeight.h"
@@ -49,6 +51,8 @@ void JoystickNavigationTask::preProcess() {
 //		navigation->addWeight(new RemoteControlWeight(create));
 		navigation->addWeight(new CollisionAvoidanceWeight(create, CollisionAvoidanceWeight::AvoidanceDirectionAuto));
 		navigation->addWeight(new AccelerationFilterWeight(create));
+//		navigation->addWeight(new RightWallFollowerWeight(create));
+
 		navigation->addWeight(new ControllerSpeedWeight(create));
 	} else {
 		navigation = NULL;

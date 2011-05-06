@@ -402,6 +402,9 @@ void Interface::currentTask(int index)
 	else if(task == "Accuracy Test") {
 		create->addTask(new TestMoveTask(create, task));
 	}
+	else if(task == "Room201") {
+			create->addTask(new TestMoveTask(create, task));
+		}
 //	else if(task == "Rotate -90")
 //	{
 //			create->addTask(new SeeYouTask(create, task, this->sliderSpeed->value()));
@@ -430,6 +433,12 @@ void Interface::currentTask(int index)
 		create->taskManager->addTask(new TestMoveTask(create, task));
 
 	}
+	else if(task == "Tracker Calibration")
+		{
+			;//create->taskManager->addTask(new TestMoveTask(create, task, this->sliderSpeed->value()));
+			create->taskManager->addTask(new TestMoveTask(create, task));
+
+		}
 	else if(task == "Stop")
 	{
 //		//create->taskManager->stopRequested = true;
@@ -636,6 +645,7 @@ QGroupBox *Interface::createBlockControllerExclusiveGroup()
 	// Task list
 	cbTask = new QComboBox();
 	cbTask->addItem("Backwards");
+	cbTask->addItem("Room201");
 	cbTask->addItem("Rotate 90");
 	cbTask->addItem("Rotate -90");
 	cbTask->addItem("Rotate 360");
@@ -644,6 +654,7 @@ QGroupBox *Interface::createBlockControllerExclusiveGroup()
 	cbTask->addItem("Wall Follower");
 	cbTask->addItem("Straight");
 	cbTask->addItem("Stop");
+	cbTask->addItem("Tracker Calibration");
 	layoutTopLeftBottomMaster->addWidget(new QLabel("Tasks"), 9, 0);
 	layoutTopLeftBottomMaster->addWidget(cbTask, 10, 0);
 

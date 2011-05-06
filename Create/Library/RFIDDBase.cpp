@@ -80,10 +80,10 @@ void RFIDDBase::createDB()
 	db.y = -122;
 	predefinedDB[11] = db;
 
-	db.id = 12;
-	db.x = -1088;
-	db.y = -244;
-	predefinedDB[12] = db;
+	//db.id = 12;   GONE FOREVER
+	//db.x = -1088;
+	//db.y = -244;
+	//predefinedDB[12] = db;
 
 	db.id = 13;
 	db.x = -1088;
@@ -165,10 +165,10 @@ void RFIDDBase::createDB()
 	db.y = 0;
 	predefinedDB[28] = db;
 
-	db.id = 29;
-	db.x = 976;
-	db.y = 0;
-	predefinedDB[29] = db;
+//	db.id = 29;
+//	db.x = 976;
+//	db.y = 0;
+//	predefinedDB[29] = db;
 
 	db.id = 30;
 	db.x = 1098;
@@ -285,29 +285,29 @@ void RFIDDBase::createDB()
 	db.y = -488;
 	predefinedDB[52] = db;
 
-	db.id = 53;
-	db.x = -1088;
-	db.y = -722;
-	predefinedDB[53] = db;
+	//db.id = 53;  GONE FOREVER
+	//db.x = -1088;
+	//db.y = -722;
+	//predefinedDB[53] = db;
 
-	db.id = 54;
-	db.x = -1088;
-	db.y = -844;
-	predefinedDB[54] = db;
+//	db.id = 54;
+//	db.x = -1088;
+//	db.y = -930;
+//	predefinedDB[54] = db;
 
 	db.id = 55;
 	db.x = -1210;
-	db.y = -688;
+	db.y = -808;
 	predefinedDB[55] = db;
 
 	db.id = 56;
 	db.x = -1332;
-	db.y = -688;
+	db.y = -808;
 	predefinedDB[56] = db;
 
 	db.id = 57;
 	db.x = -1454;
-	db.y = -688;
+	db.y = -808;
 	predefinedDB[57] = db;
 
 	db.id = 58;
@@ -405,10 +405,10 @@ void RFIDDBase::createDB()
 	//db.y = 0;
 	//predefinedDB[76] = db;
 	//
-	//db.id = 77;
-	//db.x = 0;
-	//db.y = 0;
-	//predefinedDB[77] = db;
+	db.id = 77;
+	db.x = 976;
+	db.y = 0;
+	predefinedDB[77] = db;
 	//
 	//db.id = 78;
 	//db.x = 0;
@@ -425,10 +425,10 @@ void RFIDDBase::createDB()
 	db.y = 0;
 	predefinedDB[80] = db;
 
-	//db.id = 81;
-	//db.x = 0;
-	//db.y = 0;
-	//predefinedDB[81] = db;
+	db.id = 81;
+	db.x = -1088;
+	db.y = -244;
+	predefinedDB[81] = db;
 
 	db.id = 82;
 	db.x = 122;
@@ -450,11 +450,11 @@ void RFIDDBase::createDB()
 	db.y = -722;
 	predefinedDB[85] = db;
 
-	//db.id = 86;
-	//db.x = 0;
-	//db.y = 0;
-	//predefinedDB[86] = db;
-	//
+	db.id = 86;
+	db.x = -1088;
+	db.y = -808;
+	predefinedDB[86] = db;
+
 	//db.id = 87;
 	//db.x = 0;
 	//db.y = 0;
@@ -489,12 +489,12 @@ void RFIDDBase::createDB()
 	//db.x = 0;
 	//db.y = 0;
 	//predefinedDB[93] = db;
-	//
-	//db.id = 94;
-	//db.x = 0;
-	//db.y = 0;
-	//predefinedDB[94] = db;
-	//
+
+	db.id = 94;
+	db.x = -1088;
+	db.y = -930;
+	predefinedDB[94] = db;
+
 	//db.id = 95;
 	//db.x = 0;
 	//db.y = 0;

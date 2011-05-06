@@ -84,7 +84,7 @@ void SensorController::run()
 		//create->vffAI->run();
 		//create->vffAI->run( leftPinger, rightIR, frontIR, leftIR, rightPinger, x/10, y/10 );
 		if(create->boolSetting("SensorController_Debug"))
-			printf("[ArduinoController] Left: %3d  UpperLeft: %3d  Front: %3d  UpperRight: %3d  Right: %3d  Heading: %d\n", sensorPacket.leftPinger, sensorPacket.leftIR, sensorPacket.frontIR, sensorPacket.rightIR, sensorPacket.rightPinger, sensorPacket.heading);
+			printf("[ArduinoController] Left: %3d  UpperLeft: %3d  Front: %3d  UpperRight: %3d  Right: %3d  Heading: %d  RFID: %d\n", sensorPacket.leftPinger, sensorPacket.leftIR, sensorPacket.frontIR, sensorPacket.rightIR, sensorPacket.rightPinger, sensorPacket.heading, sensorPacket.RFID);
 		//create->vffAI->run();
 //		Debug::print("[SensorController] RFID: %1", sensorPacket.RFID);
 //		Debug::print("Test: %1\n", ++x);

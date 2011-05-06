@@ -37,7 +37,7 @@
 #include "../MovementTracker/Tracker.h"
 #include "TaskManager.h"
 
-//#include "../Navigation/Weight/WallFollowerWeight.h"
+#include "../Navigation/Weight/WallFollowerWeight.h"
 #include "../Navigation/Weight/FullSpeedWeight.h"
 #include "../Navigation/Weight/ControllerSpeedWeight.h"
 #include "../Navigation/Weight/OrientationWeight.h"
@@ -78,8 +78,9 @@ void TestMoveTask::preProcess() {
 			((SystemOfWeightsNavigation *)create->navigation)->deleteAllWeights();
 			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new FullSpeedWeight(create));
 			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new OrientationWeight(create));
-			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new CollisionAvoidanceWeight(create, CollisionAvoidanceWeight::AvoidanceDirectionAuto));
+			//((SystemOfWeightsNavigation *)create->navigation)->addWeight(new CollisionAvoidanceWeight(create, CollisionAvoidanceWeight::AvoidanceDirectionAuto));
 			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new AccelerationFilterWeight(create));
+ 			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new WallFollowerWeight(create));
 			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new ControllerSpeedWeight(create));
 		} else {
 			Debug::warning("This navigation module is not supported");
@@ -97,7 +98,7 @@ void TestMoveTask::preProcess() {
 
 	// 	create->navigation->addNavPoint(robot.x() + local.getDBX(2) , robot.y() + local.getDBY(2));
 		//create->navigation->addNavPoint(robot.x() + local.getDBX(2) - halfstep / 2, robot.y() + local.getDBY(2));
-		create->navigation->addNavPoint(robot.x() + local.getDBX(2) - halfstep, robot.y() + local.getDBY(2));
+		//create->navigation->addNavPoint(robot.x() + local.getDBX(2) - halfstep, robot.y() + local.getDBY(2));
 		create->navigation->addNavPoint(robot.x() + local.getDBX(2) - halfstep * 1.5, robot.y() + local.getDBY(2));
 
 		create->navigation->addNavPoint(robot.x() + local.getDBX(3) , robot.y() + local.getDBY(3));
@@ -160,24 +161,24 @@ void TestMoveTask::preProcess() {
 		create->navigation->addNavPoint(robot.x() + local.getDBX(14) - halfstep, robot.y() + local.getDBY(14) - halfstep);
 
 		//turn
-		create->navigation->addNavPoint(robot.x() + local.getDBX(14) + halfstep / 2, robot.y() + local.getDBY(14)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(14) + halfstep, robot.y() + local.getDBY(14)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(14) + halfstep * 1.5, robot.y() + local.getDBY(14)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(14) - halfstep + halfstep / 2, robot.y() + local.getDBY(14)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(14) - halfstep + halfstep, robot.y() + local.getDBY(14)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(14) - halfstep + halfstep * 1.5, robot.y() + local.getDBY(14)- halfstep);
 
-		create->navigation->addNavPoint(robot.x() + local.getDBX(48) , robot.y() + local.getDBY(48)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(48) + halfstep / 2, robot.y() + local.getDBY(48)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(48) + halfstep, robot.y() + local.getDBY(48)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(48) + halfstep * 1.5, robot.y() + local.getDBY(48)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(48)- halfstep , robot.y() + local.getDBY(48)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(48) - halfstep+ halfstep / 2, robot.y() + local.getDBY(48)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(48) - halfstep+ halfstep, robot.y() + local.getDBY(48)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(48) - halfstep+ halfstep * 1.5, robot.y() + local.getDBY(48)- halfstep);
 
-		create->navigation->addNavPoint(robot.x() + local.getDBX(49) , robot.y() + local.getDBY(49)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(49) + halfstep / 2, robot.y() + local.getDBY(49)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(49) + halfstep, robot.y() + local.getDBY(49)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(49) + halfstep * 1.5, robot.y() + local.getDBY(49)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(49) - halfstep, robot.y() + local.getDBY(49)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(49) - halfstep+ halfstep / 2, robot.y() + local.getDBY(49)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(49) - halfstep+ halfstep, robot.y() + local.getDBY(49)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(49) - halfstep+ halfstep * 1.5, robot.y() + local.getDBY(49)- halfstep);
 
-		create->navigation->addNavPoint(robot.x() + local.getDBX(50) , robot.y() + local.getDBY(50)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(50) + halfstep / 2, robot.y() + local.getDBY(50)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(50) + halfstep, robot.y() + local.getDBY(50)- halfstep);
-		create->navigation->addNavPoint(robot.x() + local.getDBX(50) + halfstep * 1.5, robot.y() + local.getDBY(50)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(50) - halfstep, robot.y() + local.getDBY(50)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(50) - halfstep+ halfstep / 2, robot.y() + local.getDBY(50)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(50) - halfstep+ halfstep, robot.y() + local.getDBY(50)- halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(50) - halfstep+ halfstep * 1.5, robot.y() + local.getDBY(50)- halfstep);
 
 //		create->navigation->addNavPoint(robot.x() + local.getDBX(51) , robot.y() + local.getDBY(51)- halfstep);
 //		create->navigation->addNavPoint(robot.x() + local.getDBX(51) + halfstep / 2, robot.y() + local.getDBY(51)- halfstep);
@@ -185,7 +186,118 @@ void TestMoveTask::preProcess() {
 //		create->navigation->addNavPoint(robot.x() + local.getDBX(51) + halfstep * 1.5, robot.y() + local.getDBY(51)- halfstep);
 //
 //		create->navigation->addNavPoint(robot.x() + local.getDBX(52) , robot.y() + local.getDBY(52)+ halfstep);
-	} else if(this->moveName == "Straight with Weights") {
+
+
+		//create->navigation->addNavPoint(robot.x(), robot.y() + 250);
+	//	create->navigation->addNavPoint(robot.x() + 250, robot.y() + 250);
+
+	} else if(this->moveName == "Room201") {
+		Debug::print("[TestMoveTask] SystemOfWeightsNavigation turned Room201");
+
+		if(create->navigation->name == "SystemOfWeightsNavigation") {
+			Debug::print("[TestMoveTask] SystemOfWeightsNavigation turned ON");
+			((SystemOfWeightsNavigation *)create->navigation)->deleteAllWeights();
+			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new FullSpeedWeight(create));
+			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new OrientationWeight(create));
+			//((SystemOfWeightsNavigation *)create->navigation)->addWeight(new CollisionAvoidanceWeight(create, CollisionAvoidanceWeight::AvoidanceDirectionAuto));
+			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new AccelerationFilterWeight(create));
+ 			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new WallFollowerWeight(create));
+			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new ControllerSpeedWeight(create));
+		} else {
+			Debug::warning("This navigation module is not supported");
+			this->status = Interrupted;
+		}
+
+		// Set navigation points
+		Vector2D robot = create->tracker->getTranslation();
+
+		RFIDDBase local;
+
+		//Navigation_InitialNavPointsListX_mm = 0;
+		//Navigation_InitialNavPointsListY_mm = 0;
+
+		resetX = local.getDBX(94);
+		resetY = local.getDBY(94);
+
+		create->controller->setTargetSpeed(300);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(94) - resetX, robot.y() + local.getDBY(94) - resetY);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(94) - resetX, robot.y() + local.getDBY(94) - resetY + halfstep);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(86) - resetX, robot.y() + local.getDBY(86) - resetY);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(86) - resetX, robot.y() + local.getDBY(86) - resetY + halfstep);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(85) - resetX, robot.y() + local.getDBY(85) - resetY);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(85) - resetX, robot.y() + local.getDBY(85) - resetY + halfstep);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(15) - resetX, robot.y() + local.getDBY(15) - resetY);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(15) - resetX, robot.y() + local.getDBY(15) - resetY + halfstep);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(14) - resetX, robot.y() + local.getDBY(14) - resetY);
+
+		//turn
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(14) - resetX, robot.y() + local.getDBY(14) - resetY + halfstep - 300);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(48) - resetX, robot.y() + local.getDBY(48) - resetY + halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(48) - resetX + halfstep, robot.y() + local.getDBY(48) - resetY + halfstep);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(49) - resetX, robot.y() + local.getDBY(49) - resetY + halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(49) - resetX + halfstep, robot.y() + local.getDBY(49) - resetY + halfstep);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(50) - resetX, robot.y() + local.getDBY(50) - resetY + halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(50) - resetX + halfstep, robot.y() + local.getDBY(50) - resetY + halfstep);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(51) - resetX, robot.y() + local.getDBY(51) - resetY + halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(51) - resetX + halfstep, robot.y() + local.getDBY(51) - resetY + halfstep);
+
+		create->navigation->addNavPoint(robot.x() + local.getDBX(52) - resetX, robot.y() + local.getDBY(52) - resetY + halfstep);
+		create->navigation->addNavPoint(robot.x() + local.getDBX(52) - resetX + halfstep - 100, robot.y() + local.getDBY(52) - resetY + halfstep);
+	}
+	 else if(this->moveName == "Offices") {
+			Debug::print("[TestMoveTask] SystemOfWeightsNavigation turned Room201");
+
+			if(create->navigation->name == "SystemOfWeightsNavigation") {
+				Debug::print("[TestMoveTask] SystemOfWeightsNavigation turned ON");
+				((SystemOfWeightsNavigation *)create->navigation)->deleteAllWeights();
+				((SystemOfWeightsNavigation *)create->navigation)->addWeight(new FullSpeedWeight(create));
+				((SystemOfWeightsNavigation *)create->navigation)->addWeight(new OrientationWeight(create));
+				//((SystemOfWeightsNavigation *)create->navigation)->addWeight(new CollisionAvoidanceWeight(create, CollisionAvoidanceWeight::AvoidanceDirectionAuto));
+				((SystemOfWeightsNavigation *)create->navigation)->addWeight(new AccelerationFilterWeight(create));
+	 			((SystemOfWeightsNavigation *)create->navigation)->addWeight(new WallFollowerWeight(create));
+				((SystemOfWeightsNavigation *)create->navigation)->addWeight(new ControllerSpeedWeight(create));
+			} else {
+				Debug::warning("This navigation module is not supported");
+				this->status = Interrupted;
+			}
+
+			// Set navigation points
+			Vector2D robot = create->tracker->getTranslation();
+
+			RFIDDBase local;
+
+			resetX = local.getDBX(52);
+			resetY = local.getDBY(52);
+
+			create->navigation->addNavPoint(robot.x() + local.getDBX(52) - resetX, robot.y() + local.getDBY(52) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(51) - resetX, robot.y() + local.getDBY(51) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(50) - resetX, robot.y() + local.getDBY(50) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(49) - resetX, robot.y() + local.getDBY(49) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(48) - resetX, robot.y() + local.getDBY(48) - resetY);
+
+			// Turn
+			create->navigation->addNavPoint(robot.x() + local.getDBX(14) - resetX, robot.y() + local.getDBY(14) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(15) - resetX, robot.y() + local.getDBY(15) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(85) - resetX, robot.y() + local.getDBY(85) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(86) - resetX, robot.y() + local.getDBY(86) - resetY);
+
+			// Turn
+			create->navigation->addNavPoint(robot.x() + local.getDBX(55) - resetX, robot.y() + local.getDBY(56) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(56) - resetX, robot.y() + local.getDBY(56) - resetY);
+			create->navigation->addNavPoint(robot.x() + local.getDBX(57) - resetX, robot.y() + local.getDBY(57) - resetY);
+		}
+
+	else if(this->moveName == "Straight with Weights") {
 		Debug::print("[TestMoveTask] SystemOfWeightsNavigation turned Straight with Weights");
 
 		if(create->navigation->name == "SystemOfWeightsNavigation") {
@@ -450,7 +562,7 @@ void TestMoveTask::process() {
 			status = Task::Finished;
 			create->controller->setWheelSpeed(0,0);
 		}
-	} else if(moveName == "Accuracy Test" || moveName == "Straight with Weights") {
+	} else if(moveName == "Accuracy Test" || moveName == "Straight with Weights" || moveName == "Room201" || moveName == "Offices") {
 
 		Vector2D wheelSpeed = create->navigation->getWheelSpeed(0,0);
 
